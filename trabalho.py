@@ -22,8 +22,8 @@ class Restricao:
     def imprimir(self):
         print(self.indice_professor, self.horario, self.dia)
 
-# Classe que representa os vertices
-class Vertice:
+# Classe que representa as disciplinas
+class Disciplina:
     def __init__(self, indice, materia, turma, professor, quantidade_aulas):
         # Indice da disciplina
         self.indice = indice
@@ -53,6 +53,26 @@ class Vertice:
 
     def imprimir(self):
         print(self.indice, self.materia, self.turma, self.professor, self.quantidade_aulas)
+
+# Classe que representa os vertices
+class Vertice:
+    def __init__(self, indice, disciplina):
+        self.indice = indice
+        self.disciplina = disciplina
+        self.cor = None
+
+    def get_indice(self):
+        return self.indice
+
+    def get_disciplina(self):
+        return self.disciplina
+
+    def get_cor(self):
+        return self.cor
+
+    def imprimir(self):
+        print("Vertice {} {}".format(self.indice, self.cor))
+        self.disciplina.imprimir()
 
 # Classe que representa o grafo
 class Grafo:
@@ -91,7 +111,7 @@ class Grafo:
                 valores = aba.row_values(i)
 
                 # Pega o indice da disciplina
-                indice = i - 1
+                indice = i
 
                 # Pega a letra correspondente a materia
                 materia = str(valores[0])
@@ -106,11 +126,14 @@ class Grafo:
                 # Pega a quantidade de aulas
                 quantidade_aulas = int(valores[3])
 
-                self.adicionar_vertice(indice, materia, turma, professor_indice, quantidade_aulas)
+                self.adicionar_vertice(i - 1, Disciplina(indice, materia, turma, professor_indice, quantidade_aulas))
 
         # Apenas depois da leitura de todas disciplinas (vertices) eh possivel
         # Criar a lista de adjacencia porque precisa da quantidade de vertices
         self.construir_lista_adjacencia()
+
+        for vertice in self.lista_vertices:
+            vertice.imprimir()
 
     def leitura_configuracoes(self, arquivo):
         # Pega a segunda aba da planilha, a aba Configuracoes
@@ -153,11 +176,11 @@ class Grafo:
 
                 self.adicionar_restricao(indice_professor, horario, dia)
 
-        for i in self.lista_restricoes_professores:
-            i.imprimir()
+        # for i in self.lista_restricoes_professores:
+        #     i.imprimir()
 
-    def adicionar_vertice(self, indice, materia, turma, professor, quantidade_aulas):
-        self.lista_vertices.append(Vertice(indice, materia, turma, professor, quantidade_aulas))
+    def adicionar_vertice(self, indice, disciplina):
+        self.lista_vertices.append(Vertice(indice, disciplina))
 
     def adicionar_horario(self, horario):
         self.lista_horarios.append(horario)
@@ -185,12 +208,12 @@ class Grafo:
         for vertice1 in self.lista_vertices:
             for vertice2 in self.lista_vertices:
                 if vertice1 != vertice2:
-                    if vertice1.get_professor() == vertice2.get_professor():
+                    if vertice1.get_disciplina().get_professor() == vertice2.get_disciplina().get_professor():
                         self.criar_aresta(vertice1.get_indice(), vertice2.get_indice())
-                    if vertice1.get_turma() == vertice2.get_turma():
+                    if vertice1.get_disciplina().get_turma() == vertice2.get_disciplina().get_turma():
                         self.criar_aresta(vertice1.get_indice(), vertice2.get_indice())
 
 grafo = Grafo()
 grafo.leitura("dados/Escola_A.xlsx")
 grafo.verificar_restricoes()
-#grafo.imprimir_lista_adjacendia()
+# grafo.imprimir_lista_adjacendia()
