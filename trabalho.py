@@ -88,6 +88,8 @@ class Vertice:
         self.indice = indice
         self.disciplina = disciplina
         self.cor = None
+        self.grau = 0
+        self.saturacao = 0
 
     def get_indice(self):
         return self.indice
@@ -98,9 +100,23 @@ class Vertice:
     def get_cor(self):
         return self.cor
 
+    def get_grau(self):
+        return self.grau
+
+    def get_saturacao(self):
+        return self.saturacao
+
+    def set_grau(self, novo_grau):
+        self.grau = novo_grau
+
+    def set_cor(self, nova_cor):
+        self.cor = nova_cor
+
+    def aumentar_saturacao(self):
+        self.saturacao += 1
+
     def imprimir(self):
-        print("Vertice {} {}".format(self.indice, self.cor))
-        self.disciplina.imprimir()
+        print(self.indice, self.grau)
 
 # Classe que representa o grafo
 class Grafo:
@@ -306,10 +322,47 @@ class Grafo:
                 self.lista_cores.append(Cor(i, Horario(hora, dia)))
                 i += 1
 
+    def aumentar_saturacao(self, vertice):
+        for adjacente in self.lista_adjacencia[vertice]:
+            self.lista_vertices[adjacente].aumentar_saturacao()
+
+    def menor_cor_disponivel(self, vertice):
+        cores_disponiveis = [cor for cor self.lista_cores]
+        for adjacente in self.lista_adjacencia[vertice]:
+            if self.lista_vertices[adjacente].get_cor != None:
+                cores_disponiveis.remove(self.lista_vertices[adjacente].get_cor)
+        cores_disponiveis.sort(key=lambda cor: cor.get_indice)
+        return cores_disponiveis[0]
+
     # Metodo que colore os vertices
-    # def colore(self):
+    def colore(self):
+        # Calcular os graus
+        for vertice in self.lista_vertices:
+            vertice.set_grau(len(self.lista_adjacencia[vertice.get_indice()]))
+
+        # Ordena os vertices em ordem decrescente de grau
+        self.lista_vertices.sort(key=lambda vertice: vertice.get_grau(), reverse=True)
+
+        self.lista_vertices[0].set_cor(self.lista_cores[0])
+        self.aumentar_saturacao(self.lista_vertices[0].get_indice())
+
+        coloridos = 1
+        # Enquanto ainda existir um vertice descolorido
+        while coloridos <= len(self.lista_vertices):
+            # Ordena os vertices em ordem decrescente de grau de saturacao
+            self.lista_vertices.sort(key=lambda vertice: vertice.get_saturacao(), reverse=True)
+
+            self.lista_vertices[0].set_cor()
+
+        for vertice in self.lista_vertices:
+            if vertice.get_cor() == None:
+                cor = None
+            else:
+                cor = vertice.get_cor().get_indice()
+            print(vertice.get_indice(), cor, vertice.get_grau())
 
 grafo = Grafo()
 grafo.leitura("dados/Escola_A.xlsx")
 grafo.verificar_restricoes()
 # grafo.imprimir_lista_adjacendia()
+grafo.colore()
