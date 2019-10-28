@@ -106,7 +106,7 @@ class Vertice:
         return len(self.adjacentes)
 
     def get_saturacao(self):
-        return sum(vertice.get_color() is not None for vertice in self.adjacentes)
+        return sum(vertice.get_cor() is not None for vertice in self.adjacentes)
 
     def set_grau(self, novo_grau):
         self.grau = novo_grau
@@ -132,34 +132,41 @@ class Vertice:
 
     # Retorna o proximo vertice a colorir
     def proximo_colore(self):
-        saturacao = {}
+        saturacoes = {}
         graus = {}
 
         for adjacente in self.adjacentes:
             if adjacente.get_cor() == None:
-                saturacao[adjacente.get_indice()] = adjacente.get_saturacao()
-                graus[adjacente.get_indice()] = adjacente.get_grau()
+                saturacoes[adjacente] = adjacente.get_saturacao()
+                graus[adjacente] = adjacente.get_grau()
 
-        if len(saturacao):
+        if len(saturacoes):
             # Pega a maior (ou maiores) saturacao (ou saturacoes)
             # Se tiver mais de um vertice com a maior saturacao, o vertice com
             # maior grau eh retornado no final desse if
-            maior_saturacao = max(saturacao.values())
-            maiores_saturacao = {vertice: saturacao for vertice, saturacao in graus.items() if saturacao[vertice] == maior_saturacao}
+            maior_saturacao = max(saturacoes.values())
+            maiores_saturacao = {vertice: saturacao for vertice, saturacao in graus.items() if saturacoes[vertice] == maior_saturacao}
 
             # Retorna o vertice com maior grau dos vertices com maiores saturacao
             return max(maiores_saturacao, key = maiores_saturacao.get)
 
+    def colorir(self):
+        self.set_cor(self.menor_cor())
+        proximo = self.proximo_colore()
+
+        while proximo != None:
+            proximo.colorir()
+            proximo = proximo.proximo_colore()
 
     # Imprime o vertice
-    # def __str__(self):
-    #     return self.indice + ": "
+    def __str__(self):
+        return str(self.indice) + ": " + str(self.cor)
 
 # Classe que representa o grafo
 class Grafo:
     def __init__(self):
         # Lista que guarda as disciplinas
-        self.lista_vertices = []
+        self.vertices = []
         # Lista que guarda os horarios
         self.lista_horas = []
         # Lista que guarda as restricoes de horarios dos professores
@@ -173,18 +180,18 @@ class Grafo:
 
     # Retorna a quantidade de vertices
     def quantidade_vertices(self):
-        return len(self.lista_vertices)
+        return len(self.vertices)
 
     # Adicionar um vertice ao grafo
     # O parametro eh a disciplina e o indice eh calculado durante a insercao
     def adicionar_vertice(self, disciplina):
-        self.lista_vertices.append(Vertice(len(self.lista_vertices), disciplina))
+        self.vertices.append(Vertice(len(self.vertices), disciplina))
 
     # Adiciona uma aresta ao grafo
     # Os parametros sao o indice do vertice (de origem da aresta) e o indice do
     # adjacente (ou seja, vertice de destino da aresta)
     def adicionar_aresta(self, vertice, adjacente):
-        self.lista_vertices[vertice].get_adjacentes().append(self.lista_vertices[adjacente])
+        self.vertices[vertice].get_adjacentes().append(self.vertices[adjacente])
 
     def leitura(self, nome_arquivo):
         # Abre o arquivo
@@ -325,17 +332,17 @@ class Grafo:
         self.lista_preferencias_professores.append(Restricao(professor, horario))
 
     def verificar_restricoes(self):
-        for vertice1 in self.lista_vertices:
-            for vertice2 in self.lista_vertices:
+        for vertice1 in self.vertices:
+            for vertice2 in self.vertices:
                 if vertice1 != vertice2:
                     # nao eh permitida a alocacao de duas aulas para um
                     # mesmo professor no mesmo horario
                     if vertice1.get_disciplina().get_professor() == vertice2.get_disciplina().get_professor():
-                        self.criar_aresta(vertice1.get_indice(), vertice2.get_indice())
+                        self.adicionar_aresta(vertice1.get_indice(), vertice2.get_indice())
                     # nao pode haver duas aulas para uma mesma turma no
                     # mesmo horario
                     if vertice1.get_disciplina().get_turma() == vertice2.get_disciplina().get_turma():
-                        self.criar_aresta(vertice1.get_indice(), vertice2.get_indice())
+                        self.adicionar_aresta(vertice1.get_indice(), vertice2.get_indice())
 
     def adicionar_cores(self):
         dias = ("Segunda", "Terça", "Quarta", "Quinta", "Sexta")
@@ -347,43 +354,17 @@ class Grafo:
                 self.lista_cores.append(Cor(i, Horario(hora, dia)))
                 i += 1
 
-    def menor_cor_disponivel(self, vertice):
-        cores_disponiveis = [cor for cor self.lista_cores]
-        for adjacente in self.lista_adjacencia[vertice]:
-            if self.lista_vertices[adjacente].get_cor != None:
-                cores_disponiveis.remove(self.lista_vertices[adjacente].get_cor)
-        cores_disponiveis.sort(key=lambda cor: cor.get_indice)
-        return cores_disponiveis[0]
-
     # Metodo que colore os vertices
-    def colore(self):
-        # Calcular os graus
-        for vertice in self.lista_vertices:
-            vertice.set_grau(len(self.lista_adjacencia[vertice.get_indice()]))
+    def colorir(self):
+        maior_grau = max(self.vertices, key = lambda vertice: vertice.get_grau())
+        maior_grau.colorir()
 
-        # Ordena os vertices em ordem decrescente de grau
-        self.lista_vertices.sort(key=lambda vertice: vertice.get_grau(), reverse=True)
-
-        self.lista_vertices[0].set_cor(self.lista_cores[0])
-        self.aumentar_saturacao(self.lista_vertices[0].get_indice())
-
-        coloridos = 1
-        # Enquanto ainda existir um vertice descolorido
-        while coloridos <= len(self.lista_vertices):
-            # Ordena os vertices em ordem decrescente de grau de saturacao
-            self.lista_vertices.sort(key=lambda vertice: vertice.get_saturacao(), reverse=True)
-
-            self.lista_vertices[0].set_cor()
-
-        for vertice in self.lista_vertices:
-            if vertice.get_cor() == None:
-                cor = None
-            else:
-                cor = vertice.get_cor().get_indice()
-            print(vertice.get_indice(), cor, vertice.get_grau())
+    def imprimir_vertices(self):
+        for vertice in self.vertices:
+            print(vertice)
 
 grafo = Grafo()
 grafo.leitura("dados/Escola_A.xlsx")
 grafo.verificar_restricoes()
-# grafo.imprimir_lista_adjacendia()
-grafo.colore()
+grafo.colorir()
+grafo.imprimir_vertices()
