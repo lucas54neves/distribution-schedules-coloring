@@ -126,7 +126,7 @@ class Vertice:
 
         for adjacente in self.adjacentes:
             if adjacente.get_cor() == menor:
-                menor =+ 1
+                menor += 1
 
         return menor
 
@@ -161,6 +161,7 @@ class Vertice:
     # Imprime o vertice
     def __str__(self):
         return str(self.indice) + ": " + str(self.cor)
+        #return str(self.indice) + ": " + str(self.get_saturacao())
 
 # Classe que representa o grafo
 class Grafo:
