@@ -86,13 +86,15 @@ class Cor:
 class Vertice:
     def __init__(self, indice, disciplina):
         self.indice = indice
+        self.adjacentes = []
         self.disciplina = disciplina
         self.cor = None
-        self.grau = 0
-        self.saturacao = 0
 
     def get_indice(self):
         return self.indice
+
+    def get_adjacentes(self):
+        return self.adjacentes
 
     def get_disciplina(self):
         return self.disciplina
@@ -101,10 +103,10 @@ class Vertice:
         return self.cor
 
     def get_grau(self):
-        return self.grau
+        return len(self.adjacentes)
 
     def get_saturacao(self):
-        return self.saturacao
+        return sum(vertice.get_color() is not None for vertice in self.adjacentes)
 
     def set_grau(self, novo_grau):
         self.grau = novo_grau
@@ -112,21 +114,52 @@ class Vertice:
     def set_cor(self, nova_cor):
         self.cor = nova_cor
 
-    def aumentar_saturacao(self):
-        self.saturacao += 1
+    def set_saturacao(self, nova_saturacao):
+        self.saturacao = nova_saturacao
 
-    def imprimir(self):
-        print(self.indice, self.grau)
+    def adicionar_aresta(self, adjacente):
+        self.adjacentes.append(adjacente)
+
+    # Retorna a menor cor
+    def menor_cor(self):
+        menor = 0
+
+        for adjacente in self.adjacentes:
+            if adjacente.get_cor() == menor:
+                menor =+ 1
+
+        return menor
+
+    # Retorna o proximo vertice a colorir
+    def proximo_colore(self):
+        saturacao = {}
+        graus = {}
+
+        for adjacente in self.adjacentes:
+            if adjacente.get_cor() == None:
+                saturacao[adjacente.get_indice()] = adjacente.get_saturacao()
+                graus[adjacente.get_indice()] = adjacente.get_grau()
+
+        if len(saturacao):
+            # Pega a maior (ou maiores) saturacao (ou saturacoes)
+            # Se tiver mais de um vertice com a maior saturacao, o vertice com
+            # maior grau eh retornado no final desse if
+            maior_saturacao = max(saturacao.values())
+            maiores_saturacao = {vertice: saturacao for vertice, saturacao in graus.items() if saturacao[vertice] == maior_saturacao}
+
+            # Retorna o vertice com maior grau dos vertices com maiores saturacao
+            return max(maiores_saturacao, key = maiores_saturacao.get)
+
+
+    # Imprime o vertice
+    # def __str__(self):
+    #     return self.indice + ": "
 
 # Classe que representa o grafo
 class Grafo:
     def __init__(self):
-        # Quantidade de disciplinas
-        self.quantidade_vertices = 0
         # Lista que guarda as disciplinas
         self.lista_vertices = []
-        # Lista de adjacencia entre os vertices
-        self.lista_adjacencia = []
         # Lista que guarda os horarios
         self.lista_horas = []
         # Lista que guarda as restricoes de horarios dos professores
@@ -137,6 +170,21 @@ class Grafo:
         self.lista_restricoes_turmas = []
         # Lista que guarda as preferencias de cada professor
         self.lista_preferencias_professores = []
+
+    # Retorna a quantidade de vertices
+    def quantidade_vertices(self):
+        return len(self.lista_vertices)
+
+    # Adicionar um vertice ao grafo
+    # O parametro eh a disciplina e o indice eh calculado durante a insercao
+    def adicionar_vertice(self, disciplina):
+        self.lista_vertices.append(Vertice(len(self.lista_vertices), disciplina))
+
+    # Adiciona uma aresta ao grafo
+    # Os parametros sao o indice do vertice (de origem da aresta) e o indice do
+    # adjacente (ou seja, vertice de destino da aresta)
+    def adicionar_aresta(self, vertice, adjacente):
+        self.lista_vertices[vertice].get_adjacentes().append(self.lista_vertices[adjacente])
 
     def leitura(self, nome_arquivo):
         # Abre o arquivo
@@ -182,11 +230,7 @@ class Grafo:
                 # Pega a quantidade de aulas
                 quantidade_aulas = int(valores[3])
 
-                self.adicionar_vertice(i - 1, Disciplina(indice, materia, turma, professor_indice, quantidade_aulas))
-
-        # Apenas depois da leitura de todas disciplinas (vertices) eh possivel
-        # Criar a lista de adjacencia porque precisa da quantidade de vertices
-        self.construir_lista_adjacencia()
+                self.adicionar_vertice(Disciplina(indice, materia, turma, professor_indice, quantidade_aulas))
 
     def leitura_configuracoes(self, arquivo):
         # Pega a segunda aba da planilha, a aba Configuracoes
@@ -266,9 +310,6 @@ class Grafo:
 
                 self.adicionar_preferencias_professores(indice_professor, Horario(hora, dia))
 
-    def adicionar_vertice(self, indice, disciplina):
-        self.lista_vertices.append(Vertice(indice, disciplina))
-
     def adicionar_hora(self, hora):
         self.lista_horas.append(hora)
 
@@ -282,22 +323,6 @@ class Grafo:
     # classe Restricao
     def adicionar_preferencias_professores(self, professor, horario):
         self.lista_preferencias_professores.append(Restricao(professor, horario))
-
-    def construir_lista_adjacencia(self):
-        self.quantidade_vertices = len(self.lista_vertices)
-        for i in range(self.quantidade_vertices):
-            self.lista_adjacencia.append([])
-
-    def criar_aresta(self, u, v):
-        self.lista_adjacencia[u].append(v)
-
-    def imprimir(self):
-        for vertice in self.lista_vertices:
-            vertice.imprimir()
-
-    def imprimir_lista_adjacendia(self):
-        for i in range(self.quantidade_vertices):
-            print(i, self.lista_adjacencia[i])
 
     def verificar_restricoes(self):
         for vertice1 in self.lista_vertices:
@@ -321,10 +346,6 @@ class Grafo:
             for hora in self.lista_horas:
                 self.lista_cores.append(Cor(i, Horario(hora, dia)))
                 i += 1
-
-    def aumentar_saturacao(self, vertice):
-        for adjacente in self.lista_adjacencia[vertice]:
-            self.lista_vertices[adjacente].aumentar_saturacao()
 
     def menor_cor_disponivel(self, vertice):
         cores_disponiveis = [cor for cor self.lista_cores]
