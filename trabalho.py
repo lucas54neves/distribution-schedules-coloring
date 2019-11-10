@@ -83,7 +83,7 @@ class Grafo:
                 materia = str(valores[0])
 
                 # Pega o numero relativo a turma
-                turma = int(valores[1])
+                turma = valores[1].encode('utf-8')
 
                 # Pega o numero relativo ao professor
                 auxiliar = valores[2].split()
@@ -146,7 +146,7 @@ class Grafo:
                 valores = aba.row_values(i)
 
                 # Pega o numero relativo a turma
-                turma = int(valores[0])
+                turma = valores[0].encode('utf-8')
 
                 # Pega a hora da preferencia de horario
                 hora = float(valores[1])
@@ -240,7 +240,7 @@ class Grafo:
             print(retorno)
 
 def main():
-    grafo = Grafo("dados/Escola_A.xlsx")
+    grafo = Grafo("dados/Escola_C.xlsx")
 
 if __name__ == "__main__":
     main()
