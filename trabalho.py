@@ -2,381 +2,245 @@
 # -*- coding: utf-8 -*-
 
 import xlrd
-import datetime
-import math
-import time
 
-# Classe que representa o horario
 class Horario:
     def __init__(self, hora, dia):
         self.hora = hora
         self.dia = dia
 
-    def get_hora(self):
-        return self.hora
-
-    def get_dia(self):
-        return self.dia
-
     def __str__(self):
-        return "Horario: " + str(self.hora) + " - Dia:" + str(self.dia)
+        return "Hora: " + str(self.hora) + " - Dia: " + self.dia
 
-# Classe que representa as restricoes de horarios dos professores ou das turma
-class Restricao:
-    def __init__(self, indice, horario):
-        # Indice do professor ou da turma
-        self.indice = indice
-        # Horario de restricao
+# A classe Escolha representa a preferencia de horario ou a restricao de horario
+class Escolha:
+    def __init__(self, identificador, horario):
+        self.identificador = identificador
         self.horario = horario
 
-    def get_indice(self):
-        return self.indice
-
-    def get_horario(self):
-        return self.horario
-
     def __str__(self):
-        return "Restricao/Preferencia: " + str(self.indice) + str(self.horario)
+        return "Identificador: " + str(self.identificador) + " " + str(self.horario)
 
-
-# Classe que representa as disciplinas
-class Disciplina:
-    def __init__(self, indice, materia, turma, professor, quantidade_aulas):
-        # Indice da disciplina
-        self.indice = indice
-        # Letra relativa a materia
-        self.materia = materia
-        # Numero relativo a tuma
-        self.turma = turma
-        # Indice do professor
-        self.professor = professor
-        # Quantidade de aulas da disciplina
-        self.quantidade_aulas = quantidade_aulas
-
-    def get_indice(self):
-        return self.indice
-
-    def get_materia(self):
-        return self.materia
-
-    def get_turma(self):
-        return self.turma
-
-    def get_professor(self):
-        return self.professor
-
-    def get_quantidade_aulas(self):
-        return self.quantidade_aulas
-
-    def __str__(self):
-        return "Discuplina: " + str(self.indice) + " - Materia: " + str(self.materia) + " - Turma: " + str(self.turma) + " - Professor: " + str(self.professor) + " - Quantidade de aulas: " + str(self.quantidade_aulas)
-
-# Classe que representa as cores
-class Cor:
-    def __init__(self, indice, horario):
-        self.indice = indice
-        self.horario = horario
-
-    def get_indice(self):
-        return self.indice
-
-    def get_horario(self):
-        return self.horario
-
-    def imprimir(self):
-        print(self.indice, self.horario.get_hora(), self.horario.get_dia())
-
-    def __str__(self):
-        return "Cor: " + str(self.indice) + " - Hora :" + str(self.horario.get_hora()) + " - Dia: " + str(self.horario.get_dia())
-
-# Classe que representa os vertices
 class Vertice:
-    def __init__(self, indice, disciplina):
+    def __init__(self, indice, materia, professor, turma, quantidade_aulas):
         self.indice = indice
+        self.materia = materia
+        self.professor = professor
+        self.turma = turma
+        self.quantidade_aulas = quantidade_aulas
         self.adjacentes = []
-        self.disciplina = disciplina
-        self.cor = None
 
-    def get_indice(self):
-        return self.indice
-
-    def get_adjacentes(self):
-        return self.adjacentes
-
-    def get_disciplina(self):
-        return self.disciplina
-
-    def get_cor(self):
-        return self.cor
-
-    def get_grau(self):
-        return len(self.adjacentes)
-
-    def get_saturacao(self):
-        return sum(vertice.get_cor() is not None for vertice in self.adjacentes)
-
-    def set_grau(self, novo_grau):
-        self.grau = novo_grau
-
-    def set_cor(self, nova_cor):
-        self.cor = nova_cor
-
-    def set_saturacao(self, nova_saturacao):
-        self.saturacao = nova_saturacao
-
-    def adicionar_aresta(self, adjacente):
+    def adicionar_adjacente(self, adjacente):
         self.adjacentes.append(adjacente)
 
-    # Imprime o vertice
+    def eh_adjacente(self, possivel_adjacente):
+        for adjacente in self.adjacentes:
+            if adjacente == possivel_adjacente:
+                return True
+        return False
+
     def __str__(self):
-        return "Vertice: " + str(self.indice) + " " + str(self.cor)
+        return "Vertice " + str(self.indice) + " =>" + " Materia: " + self.materia + " Professor: " + str(self.professor) + " Turma: " + str(self.turma) + " Aulas: " + str(self.quantidade_aulas)
 
-# Classe que representa o grafo
 class Grafo:
-    def __init__(self):
-        # Lista que guarda as disciplinas
+    def __init__(self, nome_arquivo):
+        # Lista que armazena os vertices do grafo
         self.vertices = []
-        # Lista que guarda os horarios
-        self.lista_horas = []
-        # Lista que guarda as restricoes de horarios dos professores
-        self.lista_restricoes_professores = []
-        # Lista que guarda as cores relativas aos horarios
-        self.cores = []
-        # Lista que guarda as restricoes dos horarios das turmas
-        self.lista_restricoes_turmas = []
-        # Lista que guarda as preferencias de cada professor
-        self.lista_preferencias_professores = []
+        # Lista que armazena as horas disponiveis para aula por dia
+        self.horas = []
+        # Lista que armazena os horarios disponiveis para aula por semana
+        self.horarios = []
+        # Lista que armazena as restricoes de horarios dos professores
+        self.restricoes_professores = []
+        # Lista que armazena as restricoes de horarios das turmas
+        self.restricoes_turmas = []
+        # Lista que armazena as preferencias de horarios dos professores
+        self.preferencias_professores = []
+        self.ler_arquivo(nome_arquivo)
+        self.verificar_restricoes()
+        self.imprimir_lista_adjacencia()
 
-    # Retorna a quantidade de vertices
     def quantidade_vertices(self):
         return len(self.vertices)
 
-    # Adicionar um vertice ao grafo
-    # O parametro eh a disciplina e o indice eh calculado durante a insercao
-    def adicionar_vertice(self, disciplina):
-        self.vertices.append(Vertice(len(self.vertices), disciplina))
-
-    # Adiciona uma aresta ao grafo
-    # Os parametros sao o indice do vertice (de origem da aresta) e o indice do
-    # adjacente (ou seja, vertice de destino da aresta)
-    def adicionar_aresta(self, vertice, adjacente):
-        self.vertices[vertice].get_adjacentes().append(self.vertices[adjacente])
-
-    def leitura(self, nome_arquivo):
-        # Abre o arquivo
+    def ler_arquivo(self, nome_arquivo):
         planilha = xlrd.open_workbook(nome_arquivo)
+        self.ler_dados(planilha)
+        self.ler_configuracoes(planilha)
+        self.ler_restricoes_professores(planilha)
+        self.ler_restricoes_turma(planilha)
+        self.ler_preferencias(planilha)
 
-        # Realiza a leitura da aba Dados
-        self.leitura_dados(planilha)
+    def ler_dados(self, planilha):
+        # Pega a primeira aba da planilha
+        aba = planilha.sheet_by_index(0)
 
-        # Realiza a leitura da aba Configuracoes
-        self.leitura_configuracoes(planilha)
-
-        # Realiza a leitura da aba Restricoes
-        self.leitura_restricoes(planilha)
-
-        # Realiza a leitura da aba Restricoes Turma
-        self.leitura_restricoes_turma(planilha)
-
-        # Realiza a leitura da aba Preferencias
-        self.leitura_preferencias(planilha)
-
-    def leitura_dados(self, arquivo):
-        # Pega a primeira aba da planilha, a aba Dados
-        aba = arquivo.sheet_by_index(0)
-
-        # Loop para leitura dos dados
+        # Loop para leitura das linhas
         for i in xrange(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
 
-                # Pega o indice da disciplina
-                indice = i
-
-                # Pega a letra correspondente a materia
+                # Pega a letra relativa a materia
                 materia = str(valores[0])
 
-                # Pega o numero da turma
+                # Pega o numero relativo a turma
                 turma = int(valores[1])
 
-                # Pega o indice do professor
-                professor = valores[2].split()
-                professor_indice = int(professor[1])
+                # Pega o numero relativo ao professor
+                auxiliar = valores[2].split()
+                professor = int(auxiliar[1])
 
                 # Pega a quantidade de aulas
                 quantidade_aulas = int(valores[3])
 
-                self.adicionar_vertice(Disciplina(indice, materia, turma, professor_indice, quantidade_aulas))
+                # Adicionar o vertice com as informacoes coletas nessa linha da aba
+                self.adicionar_vertice(materia, turma, professor, quantidade_aulas)
 
-    def leitura_configuracoes(self, arquivo):
-        # Pega a segunda aba da planilha, a aba Configuracoes
-        aba = arquivo.sheet_by_index(1)
+    def ler_configuracoes(self, planilha):
+        # Pega a segunda aba da planilha
+        # Nessa aba, estao as horas disponiveis nos dias
+        aba = planilha.sheet_by_index(1)
 
-        # Loop para leitura dos dados
+        # Loop para leitura das linhas
         for i in xrange(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
+
+                # Pega a hora dessa linha da aba
                 hora = float(valores[0])
+
+                # Adiciona a hora a lista de horas
                 self.adicionar_hora(hora)
 
-        self.adicionar_cores()
+        self.criacao_cores()
 
-    def leitura_restricoes(self, arquivo):
-        # Pega a terceira aba da planilha, a aba Restricoes
-        # Nessa aba esta os horarios indisponiveis para cada professor
-        aba = arquivo.sheet_by_index(2)
+    def ler_restricoes_professores(self, planilha):
+        # Pega a terceira aba da planilha
+        # Essa aba estao as restricoes de horarios de cada professor
+        aba = planilha.sheet_by_index(2)
 
-        # Loop para leitura dos dados
+        # Loop para leitura das linhas
         for i in xrange(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
 
-                # Pega o indice do professor
-                professor = valores[0].split()
-                indice_professor = int(professor[1])
+                # Pega o numero relativo ao professor
+                auxiliar = valores[0].split()
+                professor = int(auxiliar[1])
 
-                # Pega a hora
-                hora = valores[1]
+                # Pega a hora da preferencia de horario
+                hora = float(valores[1])
 
-                # Pega o dia da semana
+                # Pega o dia da preferencia de horario
                 dia = valores[2].encode('utf-8')
 
-                self.adicionar_restricao_professores(indice_professor, Horario(hora, dia))
+                self.adicionar_restricoes_professores(professor, hora, dia)
 
-    def leitura_restricoes_turma(self, arquivo):
-        # Pega a quarta aba da planilha, a aba Restricoes Turma
-        # Nessa aba esta os horarios de restricao para cada turma
-        aba = arquivo.sheet_by_index(3)
+    def ler_restricoes_turma(self, planilha):
+        # Pega a quarta aba da planilha
+        # Nessa aba tem as restricoes de horarios de cada turma
+        aba = planilha.sheet_by_index(3)
 
-        # Loop para leitura dos dados
+        # Loop para leitura das linhas
         for i in xrange(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
 
-                # Pega o numero da turma
+                # Pega o numero relativo a turma
                 turma = int(valores[0])
 
-                # Pega a hora
+                # Pega a hora da preferencia de horario
                 hora = float(valores[1])
 
-                # Pega o dia
+                # Pega o dia da preferencia de horario
                 dia = valores[2].encode('utf-8')
 
-                self.adicionar_restricao_turmas(turma, Horario(hora, dia))
+                self.adicionar_restricoes_turmas(turma, hora, dia)
 
-    def leitura_preferencias(self, arquivo):
-        # Pega a quinta aba da planilha, a aba Preferencias
-        # Nessa aba esta os horarios de preferencias de cada professor
-        aba = arquivo.sheet_by_index(4)
+    def ler_preferencias(self, planilha):
+        # Pega a quinta aba da planilha
+        # Essa aba estao as preferencias de horarios de cada professor
+        aba = planilha.sheet_by_index(4)
 
-        # Loop para leitura dos dados
+        # Loop para leitura das linhas
         for i in xrange(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
 
-                # Pega o indice do professor
-                professor = valores[0].split()
-                indice_professor = int(professor[1])
+                # Pega o numero relativo ao professor
+                auxiliar = valores[0].split()
+                professor = int(auxiliar[1])
 
-                # Pega a hora
+                # Pega a hora da preferencia de horario
                 hora = float(valores[1])
 
-                # Pega o dia
+                # Pega o dia da preferencia de horario
                 dia = valores[2].encode('utf-8')
 
-                self.adicionar_preferencias_professores(indice_professor, Horario(hora, dia))
+                self.adicionar_preferencias_professores(professor, hora, dia)
+
+    def adicionar_vertice(self, materia, turma, professor, quantidade_aulas):
+        self.vertices.append(Vertice(len(self.vertices), materia, turma, professor, quantidade_aulas))
 
     def adicionar_hora(self, hora):
-        self.lista_horas.append(hora)
+        self.horas.append(hora)
 
-    def adicionar_restricao_professores(self, indice_professor, horario):
-        self.lista_restricoes_professores.append(Restricao(indice_professor, horario))
+    def criacao_cores(self):
+        dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"]
 
-    def adicionar_restricao_turmas(self, turma, horario):
-        self.lista_restricoes_turmas.append(Restricao(turma, horario))
+        for dia in dias:
+            for hora in self.horas:
+                self.adicionar_horario(hora, dia)
 
-    # Para adicionar as preferencias dos professores esta sendo aproveitada a
-    # classe Restricao
-    def adicionar_preferencias_professores(self, professor, horario):
-        self.lista_preferencias_professores.append(Restricao(professor, horario))
+    def adicionar_horario(self, hora, dia):
+        self.horarios.append(Horario(hora, dia))
+
+    def adicionar_restricoes_professores(self, professor, hora, dia):
+        self.restricoes_professores.append(Escolha(professor, Horario(hora, dia)))
+
+    def adicionar_restricoes_turmas(self, turma, hora, dia):
+        self.restricoes_turmas.append(Escolha(turma, Horario(hora, dia)))
+
+    def adicionar_preferencias_professores(self, professor, hora, dia):
+        self.preferencias_professores.append(Escolha(professor, Horario(hora, dia)))
 
     def verificar_restricoes(self):
         for vertice1 in self.vertices:
-            for vertice2 in self.vertices:
+            for vertice2 in self. vertices:
+                # A verificacao so ira ocorrer se os dois vertices forem diferentes
+                # e se os vertices nao forem adjacentes. Se os vertices ja forem
+                # adjacentes, isso significa que ja existe uma restricao entre os dois vertices
                 if vertice1 != vertice2:
-                    if vertice1.get_disciplina().get_materia() == vertice2.get_disciplina().get_materia():
-                        self.adicionar_aresta(vertice1.get_indice(), vertice2.get_indice())
+                    # Verifica se os vertices possuem uma mesma materia
+                    # Seguindo o que o enunciado do trabalho fala: nao eh permitida
+                    # a alocacao de duas aulas com a mesma materia no mesmo horario
+                    if vertice1.materia == vertice2.materia and not vertice1.eh_adjacente(vertice2):
+                        self.adicionar_aresta(vertice1, vertice2)
 
-                    # nao eh permitida a alocacao de duas aulas para um
-                    # mesmo professor no mesmo horario
-                    if vertice1.get_disciplina().get_professor() == vertice2.get_disciplina().get_professor():
-                        self.adicionar_aresta(vertice1.get_indice(), vertice2.get_indice())
-                    # nao pode haver duas aulas para uma mesma turma no
-                    # mesmo horario
-                    if vertice1.get_disciplina().get_turma() == vertice2.get_disciplina().get_turma():
-                        self.adicionar_aresta(vertice1.get_indice(), vertice2.get_indice())
+                    # Verifica se os vertices possuem um mesmo professor
+                    # Seguindo o que o enunciado do trabalho fala: nao eh permitida
+                    # a alocacao de duas aulas com o mesmo professor no mesmo horario
+                    if vertice1.professor == vertice2.professor and not vertice1.eh_adjacente(vertice2):
+                        self.adicionar_aresta(vertice1, vertice2)
 
-    def adicionar_cores(self):
-        dias = ("Segunda", "Terça", "Quarta", "Quinta", "Sexta")
+                    # Verifica se os vertices possuem uma mesma turma
+                    # Seguindo o que o enunciado do trabalho fala: nao eh permitida
+                    # a alocacao de duas aulas para a mesma turma no mesmo horario
+                    if vertice1.turma == vertice2.turma and not vertice1.eh_adjacente(vertice2):
+                        self.adicionar_aresta(vertice1, vertice2)
 
-        # indice para as cores
-        i = 0
-        for dia in dias:
-            for hora in self.lista_horas:
-                self.cores.append(Cor(i, Horario(hora, dia)))
-                i += 1
+    def adicionar_aresta(self, vertice1, vertice2):
+        vertice1.adicionar_adjacente(vertice2)
+        vertice2.adicionar_adjacente(vertice1)
 
-        for cor in self.cores:
-            print(cor)
-
-    # Metodo que colore os vertices
-    def colorir(self):
-        maior_grau = max(self.vertices, key = lambda vertice: vertice.get_grau())
-        maior_grau.set_cor(self.menor_cor(maior_grau))
-
-        proximo = self.proximo_colore(maior_grau)
-
-        while proximo != None:
-            proximo.set_cor(self.menor_cor(proximo))
-            proximo = self.proximo_colore(maior_grau)
-
-
-    # Retorna o proximo vertice a colorir
-    def proximo_colore(self, vertice):
-        saturacoes = {}
-        graus = {}
-
-        for adjacente in vertice.get_adjacentes():
-            if adjacente.get_cor() == None:
-                saturacoes[adjacente] = adjacente.get_saturacao()
-                graus[adjacente] = adjacente.get_grau()
-
-        if len(saturacoes):
-            # Pega a maior (ou maiores) saturacao (ou saturacoes)
-            # Se tiver mais de um vertice com a maior saturacao, o vertice com
-            # maior grau eh retornado no final desse if
-            maior_saturacao = max(saturacoes.values())
-            maiores_saturacao = {v: saturacao for v, saturacao in graus.items() if saturacoes[v] == maior_saturacao}
-
-            # Retorna o vertice com maior grau dos vertices com maiores saturacao
-            return max(maiores_saturacao, key = maiores_saturacao.get)
-
-    # Retorna a menor cor
-    def menor_cor(self, vertice):
-        menor = 0
-
-        for adjacente in vertice.get_adjacentes():
-            if adjacente.get_cor() == self.cores[menor]:
-                menor += 1
-
-        return self.cores[menor]
-
-    def imprimir_vertices(self):
+    def imprimir_lista_adjacencia(self):
         for vertice in self.vertices:
-            print(vertice)
+            retorno = str(vertice.indice) + " =>"
+            for adjacente in vertice.adjacentes:
+                retorno += " " + str(adjacente.indice)
+            print(retorno)
 
-grafo = Grafo()
-grafo.leitura("dados/Escola_A.xlsx")
-grafo.verificar_restricoes()
-grafo.colorir()
-grafo.imprimir_vertices()
+def main():
+    grafo = Grafo("dados/Escola_A.xlsx")
+
+if __name__ == "__main__":
+    main()
