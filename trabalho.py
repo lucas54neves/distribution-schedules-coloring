@@ -9,7 +9,7 @@ class Horario:
         self.dia = dia
 
     def __str__(self):
-        return "Hora: " + str(self.hora) + " - Dia: " + self.dia
+        return "Hora: " + str(self.hora) + " - Dia: " + str(self.dia)
 
 # A classe Escolha representa a preferencia de horario ou a restricao de horario
 class Escolha:
@@ -39,7 +39,7 @@ class Vertice:
         return False
 
     def __str__(self):
-        return "Vertice " + str(self.indice) + " =>" + " Materia: " + self.materia + " Professor: " + str(self.professor) + " Turma: " + str(self.turma) + " Aulas: " + str(self.quantidade_aulas)
+        return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma) + " Aulas: " + str(self.quantidade_aulas)
 
 class Grafo:
     def __init__(self, nome_arquivo):
@@ -57,7 +57,8 @@ class Grafo:
         self.preferencias_professores = []
         self.ler_arquivo(nome_arquivo)
         self.verificar_restricoes()
-        self.imprimir_lista_adjacencia()
+        #self.algoritmo_coloracao()
+        self.imprimir_relatorio()
 
     def quantidade_vertices(self):
         return len(self.vertices)
@@ -75,19 +76,18 @@ class Grafo:
         aba = planilha.sheet_by_index(0)
 
         # Loop para leitura das linhas
-        for i in xrange(aba.nrows):
+        for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
 
                 # Pega a letra relativa a materia
-                materia = str(valores[0])
+                materia = valores[0]
 
                 # Pega o numero relativo a turma
-                turma = valores[1].encode('utf-8')
+                turma = valores[1]
 
                 # Pega o numero relativo ao professor
-                auxiliar = valores[2].split()
-                professor = int(auxiliar[1])
+                professor = valores[2]
 
                 # Pega a quantidade de aulas
                 quantidade_aulas = int(valores[3])
@@ -101,7 +101,7 @@ class Grafo:
         aba = planilha.sheet_by_index(1)
 
         # Loop para leitura das linhas
-        for i in xrange(aba.nrows):
+        for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
 
@@ -119,7 +119,7 @@ class Grafo:
         aba = planilha.sheet_by_index(2)
 
         # Loop para leitura das linhas
-        for i in xrange(aba.nrows):
+        for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
 
@@ -141,12 +141,12 @@ class Grafo:
         aba = planilha.sheet_by_index(3)
 
         # Loop para leitura das linhas
-        for i in xrange(aba.nrows):
+        for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
 
                 # Pega o numero relativo a turma
-                turma = valores[0].encode('utf-8')
+                turma = valores[0]
 
                 # Pega a hora da preferencia de horario
                 hora = float(valores[1])
@@ -162,7 +162,7 @@ class Grafo:
         aba = planilha.sheet_by_index(4)
 
         # Loop para leitura das linhas
-        for i in xrange(aba.nrows):
+        for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
 
@@ -239,8 +239,38 @@ class Grafo:
                 retorno += " " + str(adjacente.indice)
             print(retorno)
 
+    def imprimir_relatorio(self):
+        self.imprimir_preferencias_professores()
+
+    def imprimir_vertices(self):
+        for vertice in self.vertices:
+            print(vertice)
+
+    def imprimir_horas(self):
+        for hora in self.horas:
+            print(hora)
+
+    def imprimir_horarios(self):
+        for horario in self.horarios:
+            print(horario)
+
+    def imprimir_restricoes_professores(self):
+        for restricao in self.restricoes_professores:
+            print(restricao)
+
+    def imprimir_restricoes_turmas(self):
+        for restricao in self.restricoes_turmas:
+            print(restricao)
+
+    def imprimir_preferencias_professores(self):
+        for preferencia in self.preferencias_professores:
+            print(preferencia)
+
 def main():
-    grafo = Grafo("dados/Escola_C.xlsx")
+    grafo1 = Grafo("dados/Escola_A.xlsx")
+    grafo2 = Grafo("dados/Escola_B.xlsx")
+    grafo3 = Grafo("dados/Escola_C.xlsx")
+    grafo4 = Grafo("dados/Escola_D.xlsx")
 
 if __name__ == "__main__":
     main()
