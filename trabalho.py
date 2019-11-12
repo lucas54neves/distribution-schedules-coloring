@@ -21,12 +21,11 @@ class Escolha:
         return "Identificador: " + str(self.identificador) + " " + str(self.horario)
 
 class Vertice:
-    def __init__(self, indice, materia, professor, turma, quantidade_aulas):
+    def __init__(self, indice, materia, professor, turma):
         self.indice = indice
         self.materia = materia
         self.professor = professor
         self.turma = turma
-        self.quantidade_aulas = quantidade_aulas
         self.adjacentes = []
 
     def adicionar_adjacente(self, adjacente):
@@ -39,7 +38,7 @@ class Vertice:
         return False
 
     def __str__(self):
-        return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma) + " Aulas: " + str(self.quantidade_aulas)
+        return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma)
 
 class Grafo:
     def __init__(self, nome_arquivo):
@@ -57,8 +56,9 @@ class Grafo:
         self.preferencias_professores = []
         self.ler_arquivo(nome_arquivo)
         self.verificar_restricoes()
+        self.imprimir_lista_adjacencia()
         #self.algoritmo_coloracao()
-        self.imprimir_relatorio()
+        #self.imprimir_relatorio()
 
     def quantidade_vertices(self):
         return len(self.vertices)
@@ -92,8 +92,21 @@ class Grafo:
                 # Pega a quantidade de aulas
                 quantidade_aulas = int(valores[3])
 
-                # Adicionar o vertice com as informacoes coletas nessa linha da aba
-                self.adicionar_vertice(materia, turma, professor, quantidade_aulas)
+                # Adiciona o vertice com as informacoes coletas nessa linha da aba.
+                # Cada aula eh representada por um vertice. Se existe uma materia A
+                # que eh ministrada por um professor 1 para uma turma B que possui
+                # 3 aulas, 3 vertices seram adicionados para representar cada uma
+                # das aulas.
+                for i in range(quantidade_aulas):
+                    self.adicionar_vertice(materia, turma, professor)
+
+                i = len(self.vertices) - quantidade_aulas
+                while i < len(self.vertices):
+                    j = i + 1
+                    if j < len(self.vertices) and not self.vertices[i].eh_adjacente(self.vertices[j]):
+                        self.adicionar_aresta(self.vertices[i], self.vertices[j])
+                    i += 1
+
 
     def ler_configuracoes(self, planilha):
         # Pega a segunda aba da planilha
@@ -178,8 +191,8 @@ class Grafo:
 
                 self.adicionar_preferencias_professores(professor, hora, dia)
 
-    def adicionar_vertice(self, materia, turma, professor, quantidade_aulas):
-        self.vertices.append(Vertice(len(self.vertices), materia, turma, professor, quantidade_aulas))
+    def adicionar_vertice(self, materia, turma, professor):
+        self.vertices.append(Vertice(len(self.vertices), materia, turma, professor))
 
     def adicionar_hora(self, hora):
         self.horas.append(hora)
@@ -268,9 +281,9 @@ class Grafo:
 
 def main():
     grafo1 = Grafo("dados/Escola_A.xlsx")
-    grafo2 = Grafo("dados/Escola_B.xlsx")
-    grafo3 = Grafo("dados/Escola_C.xlsx")
-    grafo4 = Grafo("dados/Escola_D.xlsx")
+    #grafo2 = Grafo("dados/Escola_B.xlsx")
+    #grafo3 = Grafo("dados/Escola_C.xlsx")
+    #grafo4 = Grafo("dados/Escola_D.xlsx")
 
 if __name__ == "__main__":
     main()
