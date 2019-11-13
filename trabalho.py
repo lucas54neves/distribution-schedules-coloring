@@ -27,6 +27,7 @@ class Vertice:
         self.professor = professor
         self.turma = turma
         self.adjacentes = []
+        self.cor = None
 
     def adicionar_adjacente(self, adjacente):
         self.adjacentes.append(adjacente)
@@ -36,6 +37,44 @@ class Vertice:
             if adjacente == possivel_adjacente:
                 return True
         return False
+
+    def get_grau(self):
+        return len(self.adjacentes)
+
+    def get_saturacao(self):
+        return sum(vertice.cor is not None for vertice in self.adjacentes)
+
+    def menor_cor_disponivel(self):
+        menor = 0
+
+        for vertice in self.adjacentes:
+            if vertice.cor == menor:
+                menor += 1
+
+        return menor
+
+    def melhor_vertice(self):
+        saturacoes = {}
+        graus = {}
+
+        for vertice in self.adjacentes:
+            if vertice.cor == None:
+                saturacoes[vertice] = vertice.get_saturacao()
+                graus[vertice] = vertice.get_grau()
+
+        if len(saturacoes):
+            maior_saturacao = max(saturacoes.values())
+            maiores_saturacoes = {vertice: saturacao for vertice, saturacao in graus.items() if saturacoes[vertice] == maior_saturacao}
+
+            return max(maiores_saturacoes, key = maiores_saturacoes.get)
+
+    def colorir(self):
+        self.cor = self.menor_cor_disponivel()
+        proximo = self.melhor_vertice()
+
+        while proximo != None:
+            proximo.colorir()
+            proximo = self.melhor_vertice()
 
     def __str__(self):
         return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma)
@@ -54,11 +93,16 @@ class Grafo:
         self.restricoes_turmas = []
         # Lista que armazena as preferencias de horarios dos professores
         self.preferencias_professores = []
+        # Variavel para guardar a quantidade de vertices coloridos
+        self.vertices_coloridos = 0
+        # Metodo que realiza a leitura do arquivo
         self.ler_arquivo(nome_arquivo)
+        # Metodo que verifica todas as restricoes
         self.verificar_restricoes()
-        self.imprimir_lista_adjacencia()
-        #self.algoritmo_coloracao()
-        #self.imprimir_relatorio()
+        # Metodo que colere o grafo
+        self.colorir()
+        # Metodo que imprime o relatorio
+        self.imprimir_relatorio()
 
     def quantidade_vertices(self):
         return len(self.vertices)
@@ -245,39 +289,12 @@ class Grafo:
         vertice1.adicionar_adjacente(vertice2)
         vertice2.adicionar_adjacente(vertice1)
 
-    def imprimir_lista_adjacencia(self):
-        for vertice in self.vertices:
-            retorno = str(vertice.indice) + " =>"
-            for adjacente in vertice.adjacentes:
-                retorno += " " + str(adjacente.indice)
-            print(retorno)
+    def colorir(self):
+        primeiro = max(self.vertices, key =  lambda vertice: vertice.get_grau())
+        primeiro.colorir()
 
     def imprimir_relatorio(self):
-        self.imprimir_preferencias_professores()
-
-    def imprimir_vertices(self):
-        for vertice in self.vertices:
-            print(vertice)
-
-    def imprimir_horas(self):
-        for hora in self.horas:
-            print(hora)
-
-    def imprimir_horarios(self):
-        for horario in self.horarios:
-            print(horario)
-
-    def imprimir_restricoes_professores(self):
-        for restricao in self.restricoes_professores:
-            print(restricao)
-
-    def imprimir_restricoes_turmas(self):
-        for restricao in self.restricoes_turmas:
-            print(restricao)
-
-    def imprimir_preferencias_professores(self):
-        for preferencia in self.preferencias_professores:
-            print(preferencia)
+        print(max(self.vertices, key =  lambda vertice: vertice.cor).cor)
 
 def main():
     grafo1 = Grafo("dados/Escola_A.xlsx")
