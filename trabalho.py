@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import xlrd
+from tabulate import tabulate
+import time
 
 class Horario:
     def __init__(self, hora, dia):
@@ -80,7 +82,7 @@ class Vertice:
         return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma)
 
 class Grafo:
-    def __init__(self, nome_arquivo):
+    def __init__(self, nome_arquivo, nome_escola):
         # Lista que armazena os vertices do grafo
         self.vertices = []
         # Lista que armazena as horas disponiveis para aula por dia
@@ -95,14 +97,20 @@ class Grafo:
         self.preferencias_professores = []
         # Variavel para guardar a quantidade de vertices coloridos
         self.vertices_coloridos = 0
+        # Nome da escola para imprimir no resultado
+        self.nome_escola = nome_escola
         # Metodo que realiza a leitura do arquivo
         self.ler_arquivo(nome_arquivo)
         # Metodo que verifica todas as restricoes
         self.verificar_restricoes()
         # Metodo que colere o grafo
+        inicio = time.time()
         self.colorir()
+        fim = time.time()
+        self.tempo_iteracao = fim - inicio
+
         # Metodo que imprime o relatorio
-        self.imprimir_relatorio()
+        self.resultados()
 
     def quantidade_vertices(self):
         return len(self.vertices)
@@ -142,14 +150,7 @@ class Grafo:
                 # 3 aulas, 3 vertices seram adicionados para representar cada uma
                 # das aulas.
                 for i in range(quantidade_aulas):
-                    self.adicionar_vertice(materia, turma, professor)
-
-                i = len(self.vertices) - quantidade_aulas
-                while i < len(self.vertices):
-                    j = i + 1
-                    if j < len(self.vertices) and not self.vertices[i].eh_adjacente(self.vertices[j]):
-                        self.adicionar_aresta(self.vertices[i], self.vertices[j])
-                    i += 1
+                    self.adicionar_vertice(materia, professor, turma)
 
 
     def ler_configuracoes(self, planilha):
@@ -235,8 +236,8 @@ class Grafo:
 
                 self.adicionar_preferencias_professores(professor, hora, dia)
 
-    def adicionar_vertice(self, materia, turma, professor):
-        self.vertices.append(Vertice(len(self.vertices), materia, turma, professor))
+    def adicionar_vertice(self, materia, professor, turma):
+        self.vertices.append(Vertice(len(self.vertices), materia, professor, turma))
 
     def adicionar_hora(self, hora):
         self.horas.append(hora)
@@ -290,17 +291,31 @@ class Grafo:
         vertice2.adicionar_adjacente(vertice1)
 
     def colorir(self):
-        primeiro = max(self.vertices, key =  lambda vertice: vertice.get_grau())
-        primeiro.colorir()
+        # primeiro = max(self.vertices, key =  lambda vertice: vertice.get_grau())
+        # primeiro.colorir()
+        self.vertices[0].cor = 0
+        for vertice in self.vertices:
+            if vertice.cor == None:
+                vertice.cor = vertice.menor_cor_disponivel()
 
-    def imprimir_relatorio(self):
-        print(max(self.vertices, key =  lambda vertice: vertice.cor).cor)
+    def resultados(self):
+        # Retorna um inteiro representando a quantidade de cores (ou horarios),
+        # um inteiro representando a quantidade de vertices nao coloridos,
+        #return (self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.preferencias_nao_atendidas)
+        # table = []
+        # for vertice in self.vertices:
+        #     table.append([vertice.turma, vertice.materia, vertice.professor, vertice.cor])
+        # print(tabulate(table, headers=["Turma", "Materia", "Professor", "Cor"]))
+        print("{}:".format(self.nome_escola))
+        print("Quantidade de cores: {}".format(max(self.vertices, key =  lambda vertice: vertice.cor).cor))
+        print("Preferências atendidas pelo total de preferências: {}".format(0))
+        print("Tempo de iteração: {}".format(self.tempo_iteracao))
 
 def main():
-    grafo1 = Grafo("dados/Escola_A.xlsx")
-    #grafo2 = Grafo("dados/Escola_B.xlsx")
-    #grafo3 = Grafo("dados/Escola_C.xlsx")
-    #grafo4 = Grafo("dados/Escola_D.xlsx")
+    grafo1 = Grafo("dados/Escola_A.xlsx", "Escola A")
+    grafo2 = Grafo("dados/Escola_B.xlsx", "Escola B")
+    grafo3 = Grafo("dados/Escola_C.xlsx", "Escola C")
+    grafo4 = Grafo("dados/Escola_D.xlsx", "Escola D")
 
 if __name__ == "__main__":
     main()
