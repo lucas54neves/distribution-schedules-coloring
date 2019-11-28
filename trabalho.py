@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import xlrd
+from tabulate import tabulate
+import time
 
 class Horario:
     def __init__(self, hora, dia):
@@ -102,9 +104,13 @@ class Grafo:
         # Metodo que verifica todas as restricoes
         self.verificar_restricoes()
         # Metodo que colere o grafo
+        inicio = time.time()
         self.colorir()
+        fim = time.time()
+        self.tempo_iteracao = fim - inicio
+
         # Metodo que imprime o relatorio
-        self.imprimir_relatorio()
+        self.resultados()
 
     def quantidade_vertices(self):
         return len(self.vertices)
@@ -145,13 +151,6 @@ class Grafo:
                 # das aulas.
                 for i in range(quantidade_aulas):
                     self.adicionar_vertice(materia, professor, turma)
-
-                i = len(self.vertices) - quantidade_aulas
-                while i < len(self.vertices):
-                    j = i + 1
-                    if j < len(self.vertices) and not self.vertices[i].eh_adjacente(self.vertices[j]):
-                        self.adicionar_aresta(self.vertices[i], self.vertices[j])
-                    i += 1
 
 
     def ler_configuracoes(self, planilha):
@@ -292,13 +291,25 @@ class Grafo:
         vertice2.adicionar_adjacente(vertice1)
 
     def colorir(self):
-        primeiro = max(self.vertices, key =  lambda vertice: vertice.get_grau())
-        primeiro.colorir()
+        # primeiro = max(self.vertices, key =  lambda vertice: vertice.get_grau())
+        # primeiro.colorir()
+        self.vertices[0].cor = 0
+        for vertice in self.vertices:
+            if vertice.cor == None:
+                vertice.cor = vertice.menor_cor_disponivel()
 
-    def imprimir_relatorio(self):
+    def resultados(self):
+        # Retorna um inteiro representando a quantidade de cores (ou horarios),
+        # um inteiro representando a quantidade de vertices nao coloridos,
+        #return (self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.preferencias_nao_atendidas)
+        # table = []
+        # for vertice in self.vertices:
+        #     table.append([vertice.turma, vertice.materia, vertice.professor, vertice.cor])
+        # print(tabulate(table, headers=["Turma", "Materia", "Professor", "Cor"]))
         print("{}:".format(self.nome_escola))
         print("Quantidade de cores: {}".format(max(self.vertices, key =  lambda vertice: vertice.cor).cor))
         print("Preferências atendidas pelo total de preferências: {}".format(0))
+        print("Tempo de iteração: {}".format(self.tempo_iteracao))
 
 def main():
     grafo1 = Grafo("dados/Escola_A.xlsx", "Escola A")
