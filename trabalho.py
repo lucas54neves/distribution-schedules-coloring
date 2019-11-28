@@ -80,7 +80,7 @@ class Vertice:
         return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma)
 
 class Grafo:
-    def __init__(self, nome_arquivo):
+    def __init__(self, nome_arquivo, nome_escola):
         # Lista que armazena os vertices do grafo
         self.vertices = []
         # Lista que armazena as horas disponiveis para aula por dia
@@ -95,6 +95,8 @@ class Grafo:
         self.preferencias_professores = []
         # Variavel para guardar a quantidade de vertices coloridos
         self.vertices_coloridos = 0
+        # Nome da escola para imprimir no resultado
+        self.nome_escola = nome_escola
         # Metodo que realiza a leitura do arquivo
         self.ler_arquivo(nome_arquivo)
         # Metodo que verifica todas as restricoes
@@ -142,7 +144,7 @@ class Grafo:
                 # 3 aulas, 3 vertices seram adicionados para representar cada uma
                 # das aulas.
                 for i in range(quantidade_aulas):
-                    self.adicionar_vertice(materia, turma, professor)
+                    self.adicionar_vertice(materia, professor, turma)
 
                 i = len(self.vertices) - quantidade_aulas
                 while i < len(self.vertices):
@@ -235,8 +237,8 @@ class Grafo:
 
                 self.adicionar_preferencias_professores(professor, hora, dia)
 
-    def adicionar_vertice(self, materia, turma, professor):
-        self.vertices.append(Vertice(len(self.vertices), materia, turma, professor))
+    def adicionar_vertice(self, materia, professor, turma):
+        self.vertices.append(Vertice(len(self.vertices), materia, professor, turma))
 
     def adicionar_hora(self, hora):
         self.horas.append(hora)
@@ -294,13 +296,15 @@ class Grafo:
         primeiro.colorir()
 
     def imprimir_relatorio(self):
-        print(max(self.vertices, key =  lambda vertice: vertice.cor).cor)
+        print("{}:".format(self.nome_escola))
+        print("Quantidade de cores: {}".format(max(self.vertices, key =  lambda vertice: vertice.cor).cor))
+        print("Preferências atendidas pelo total de preferências: {}".format(0))
 
 def main():
-    grafo1 = Grafo("dados/Escola_A.xlsx")
-    #grafo2 = Grafo("dados/Escola_B.xlsx")
-    #grafo3 = Grafo("dados/Escola_C.xlsx")
-    #grafo4 = Grafo("dados/Escola_D.xlsx")
+    grafo1 = Grafo("dados/Escola_A.xlsx", "Escola A")
+    grafo2 = Grafo("dados/Escola_B.xlsx", "Escola B")
+    grafo3 = Grafo("dados/Escola_C.xlsx", "Escola C")
+    grafo4 = Grafo("dados/Escola_D.xlsx", "Escola D")
 
 if __name__ == "__main__":
     main()
