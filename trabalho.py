@@ -62,9 +62,6 @@ class Vertice:
 
         return menor
 
-    def colorir_menor_cor(self):
-        self.cor = self.menor_cor_disponivel()
-
     def __str__(self):
         return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma)
 
@@ -314,7 +311,7 @@ class Grafo:
             proximo = self.proximo_vertice(lista_para_colorir)
 
             # Colore o vertice com a menor cor disponivel
-            proximo.colorir_menor_cor()
+            proximo.cor = proximo.menor_cor_disponivel()
 
             # Remove o vertice colorido da lista
             lista_para_colorir.remove(proximo)
