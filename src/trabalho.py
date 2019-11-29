@@ -393,13 +393,13 @@ def main():
     print("[2] Algoritmo Dsatur")
     algoritmo = int(input("Entre com o algoritmo desejado: "))
     # dados = []
-    grafo1 = Grafo("dados/Escola_A.xlsx", "Escola A", algoritmo)
+    grafo1 = Grafo("../dados/Escola_A.xlsx", "Escola A", algoritmo)
     # dados.append(grafo1.retornar_dados_arquivo())
-    grafo2 = Grafo("dados/Escola_B.xlsx", "Escola B", algoritmo)
+    grafo2 = Grafo("../dados/Escola_B.xlsx", "Escola B", algoritmo)
     # dados.append(grafo2.retornar_dados_arquivo())
-    grafo3 = Grafo("dados/Escola_C.xlsx", "Escola C", algoritmo)
+    grafo3 = Grafo("../dados/Escola_C.xlsx", "Escola C", algoritmo)
     # dados.append(grafo3.retornar_dados_arquivo())
-    grafo4 = Grafo("dados/Escola_D.xlsx", "Escola D", algoritmo)
+    grafo4 = Grafo("../dados/Escola_D.xlsx", "Escola D", algoritmo)
     # dados.append(grafo4.retornar_dados_arquivo())
     # escrever_arquivo(dados, "Resultados.txt")
 
