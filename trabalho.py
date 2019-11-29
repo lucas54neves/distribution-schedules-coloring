@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import xlrd
-from tabulate import tabulate
+# from tabulate import tabulate
 import time
 
 class Horario:
@@ -40,11 +40,18 @@ class Vertice:
                 return True
         return False
 
+    # Retorna o grau do vertice
     def get_grau(self):
         return len(self.adjacentes)
 
+    # Retorna o grau de saturacao do vertice
+    # A saturacao eh o numero de diferentes cores para qual o vertice eh adjacente
     def get_saturacao(self):
-        return sum(vertice.cor is not None for vertice in self.adjacentes)
+        saturacao = 0
+        for adjacente in self.adjacentes:
+            if adjacente.cor is not None:
+                saturacao += 1
+        return saturacao
 
     def menor_cor_disponivel(self):
         menor = 0
@@ -55,34 +62,14 @@ class Vertice:
 
         return menor
 
-    def melhor_vertice(self):
-        saturacoes = {}
-        graus = {}
-
-        for vertice in self.adjacentes:
-            if vertice.cor == None:
-                saturacoes[vertice] = vertice.get_saturacao()
-                graus[vertice] = vertice.get_grau()
-
-        if len(saturacoes):
-            maior_saturacao = max(saturacoes.values())
-            maiores_saturacoes = {vertice: saturacao for vertice, saturacao in graus.items() if saturacoes[vertice] == maior_saturacao}
-
-            return max(maiores_saturacoes, key = maiores_saturacoes.get)
-
-    def colorir(self):
+    def colorir_menor_cor(self):
         self.cor = self.menor_cor_disponivel()
-        proximo = self.melhor_vertice()
-
-        while proximo != None:
-            proximo.colorir()
-            proximo = self.melhor_vertice()
 
     def __str__(self):
         return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma)
 
 class Grafo:
-    def __init__(self, nome_arquivo, nome_escola):
+    def __init__(self, nome_arquivo, nome_escola, algoritmo_selecionado):
         # Lista que armazena os vertices do grafo
         self.vertices = []
         # Lista que armazena as horas disponiveis para aula por dia
@@ -105,12 +92,12 @@ class Grafo:
         self.verificar_restricoes()
         # Metodo que colere o grafo
         inicio = time.time()
-        self.colorir()
+        self.colorir(algoritmo_selecionado)
         fim = time.time()
         self.tempo_iteracao = fim - inicio
 
-        # Metodo que imprime o relatorio
-        self.resultados()
+        # Metodo que imprime o relatorio no terminal
+        self.imprimir_terminal()
 
     def quantidade_vertices(self):
         return len(self.vertices)
@@ -290,32 +277,134 @@ class Grafo:
         vertice1.adicionar_adjacente(vertice2)
         vertice2.adicionar_adjacente(vertice1)
 
-    def colorir(self):
-        # primeiro = max(self.vertices, key =  lambda vertice: vertice.get_grau())
-        # primeiro.colorir()
+    # Realiza a coloracao de acordo com o algoritmo selecionado
+    # [1] Heristica Gulosa
+    # [2] Algoritmo Dsatur
+    def colorir(self, algoritmo_selecionado):
+        if algoritmo_selecionado == 1:
+            self.heuristica_gulosa()
+        elif algoritmo_selecionado == 2:
+            self.dsatur()
+        else:
+            print("Nenhum algoritmo selecionado")
+
+    def heuristica_gulosa(self):
         self.vertices[0].cor = 0
         for vertice in self.vertices:
             if vertice.cor == None:
                 vertice.cor = vertice.menor_cor_disponivel()
 
-    def resultados(self):
-        # Retorna um inteiro representando a quantidade de cores (ou horarios),
-        # um inteiro representando a quantidade de vertices nao coloridos,
-        #return (self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.preferencias_nao_atendidas)
-        # table = []
-        # for vertice in self.vertices:
-        #     table.append([vertice.turma, vertice.materia, vertice.professor, vertice.cor])
-        # print(tabulate(table, headers=["Turma", "Materia", "Professor", "Cor"]))
+    def dsatur(self):
+        # Copia a lista de vertices para realizar a coloracao
+        lista_para_colorir = self.vertices.copy()
+
+        # Ordena em ordem decrescente a lista que sera usada na coloracao
+        lista_para_colorir.sort(key=lambda vertice: vertice.get_grau(), reverse=True)
+
+        # Atribui a cor 0 para o vertice de maior grau
+        lista_para_colorir[0].cor = 0
+
+        # Remove o vertice colorido da lista
+        lista_para_colorir.pop(0)
+
+        # Executa o algoritmo enquanto a lista com os vertices para colorir nao
+        # esteja vazia
+        while lista_para_colorir:
+            # Seleciona o proximo vertice para colorir
+            proximo = self.proximo_vertice(lista_para_colorir)
+
+            # Colore o vertice com a menor cor disponivel
+            proximo.colorir_menor_cor()
+
+            # Remove o vertice colorido da lista
+            lista_para_colorir.remove(proximo)
+
+    def proximo_vertice(self, lista_vertices):
+        saturacoes = {}
+        graus = {}
+
+        for vertice in lista_vertices:
+            saturacoes[vertice] = vertice.get_saturacao()
+            graus[vertice] = vertice.get_grau()
+
+        if len(saturacoes):
+            # Seleciona a maior (ou maiores) saturacao (ou saturacoes)
+            # Se tiver mais de um vertice com a maior saturacao, o vertice com
+            # maior grau eh selecionado
+            maior_saturacao = max(saturacoes.values())
+            maiores_saturacao = {v: saturacao for v, saturacao in graus.items() if saturacoes[v] == maior_saturacao}
+
+            # Retorna o vertice com maior grau dos vertices com maiores saturacao
+            return max(maiores_saturacao, key = maiores_saturacao.get)
+
+    # Imprime os resultados do algoritmo como solicitado no enunciado do trabalho
+    def imprimir_terminal(self):
         print("{}:".format(self.nome_escola))
         print("Quantidade de cores: {}".format(max(self.vertices, key =  lambda vertice: vertice.cor).cor))
         print("Preferências atendidas pelo total de preferências: {}".format(0))
-        print("Tempo de iteração: {}".format(self.tempo_iteracao))
+
+    # Retornar os dados que devem ser escritos no arquivo
+    def retornar_dados_arquivo(self):
+        return [self.nome_escola, self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.get_preferenciais_atendidas()]
+
+# Metodo que escreve o resultado no arquivo
+# O metodo usa uma lista (lista 1) com os dados
+# Em cada posicao da lista dados tem um lista (lista 2) com os dados de uma escola
+#   Na posicao 0 da lista 2, esta o nome da escola
+#   Na posicao 1 da lista 2, esta a quantidade de horarios (ou cores) utilizada
+#       na coloracao
+#   Na posicao 2 da lista 2, esta o tempo (em segundos) do tempo que o algoritmo
+#       levou para ser executado
+#   Na posicao 3 da lista 2, esta a quantidade de vertices nao lidos
+#   Na posicao 4 da lista 2, esta uma lista 3 com as preferencis atendidas para
+#       para cada professor
+#       Em cada posicao da lista 3, tem uma tupla com o identificador do
+#           # professor e a quantidade de preferencias atendidas
+def escrever_arquivo(dados, nome_arquivo):
+    # Abre o arquivo para escrita
+    # Se o arquivo existe, ele apaga os dados e escreve por cima
+    # Se o arquivo nao existe, um arquivo vazio eh criado
+    arquivo = open(nome_arquivo, 'w')
+    arquivo.write("Resultados:")
+    arquivo.write("Quantidade de horarios utilizadas (cores):")
+    # Salva no arquivo a quantidade de horario utilizada por cada escola
+    for dado in dados:
+        arquivo.write("{}: {}".format(dado[0], dado[1]))
+    arquivo.write("Tempo para iteracao do algoritmo (em segundos):")
+    # Salva no arquivo o tempo gasto por cada algoritmo
+    for dado in dados:
+        arquivo.write("{}: {}".format(dado[0], dado[2]))
+    arquivo.write("Quantidade de vertices nao coloridos:")
+    # Salva no arquivo a quantidade de vertices noa coloridos
+    for dado in dados:
+        arquivo.write("{}: {}".format(dado[0], dado[3]))
+    arquivo.write("Quantidade de preferencias nao atendidas para cada professor (somente dos professores que possuem preferencias):")
+    # Salva no arquivo a quantidade de preferencias atendidas por cada professor
+    # (somente se o professor tiver preferencias) em cada escola
+    for dado in dados:
+        # Salva o nome da escola
+        arquivo.write("{}:".format(dado[0]))
+        for professor in dado[4]:
+            # Salva o nome do professor e a quantidade de preferenciais atendidas
+            arquivo.write("{}: {}".format(professor[0], professor[1]))
+    # Fecha o arquivo
+    arquivo.close()
 
 def main():
-    grafo1 = Grafo("dados/Escola_A.xlsx", "Escola A")
-    grafo2 = Grafo("dados/Escola_B.xlsx", "Escola B")
-    grafo3 = Grafo("dados/Escola_C.xlsx", "Escola C")
-    grafo4 = Grafo("dados/Escola_D.xlsx", "Escola D")
+    print("Opcoes de algoritmos")
+    print("[1] Heuristica Gulosa")
+    print("[2] Algoritmo Dsatur")
+    algoritmo = int(input("Entre com o algoritmo desejado: "))
+    # dados = []
+    grafo1 = Grafo("dados/Escola_A.xlsx", "Escola A", algoritmo)
+    # dados.append(grafo1.retornar_dados_arquivo())
+    grafo2 = Grafo("dados/Escola_B.xlsx", "Escola B", algoritmo)
+    # dados.append(grafo2.retornar_dados_arquivo())
+    grafo3 = Grafo("dados/Escola_C.xlsx", "Escola C", algoritmo)
+    # dados.append(grafo3.retornar_dados_arquivo())
+    grafo4 = Grafo("dados/Escola_D.xlsx", "Escola D", algoritmo)
+    # dados.append(grafo4.retornar_dados_arquivo())
+    # escrever_arquivo(dados, "Resultados.txt")
 
 if __name__ == "__main__":
     main()
