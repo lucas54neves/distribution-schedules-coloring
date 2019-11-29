@@ -309,8 +309,8 @@ class Grafo:
         print("Preferências atendidas pelo total de preferências: {}".format(0))
 
     # Retornar os dados que devem ser escritos no arquivo
-    def tratar_dados_arquivo(self):
-        return [self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.get_preferenciais_atendidas()]
+    def retornar_dados_arquivo(self):
+        return [self.nome_escola, self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.get_preferenciais_atendidas()]
 
 # Metodo que escreve o resultado no arquivo
 # O metodo usa uma lista (lista 1) com os dados
@@ -325,7 +325,7 @@ class Grafo:
 #       para cada professor
 #       Em cada posicao da lista 3, tem uma tupla com o identificador do
 #           # professor e a quantidade de preferencias atendidas
-def escrever_arquivo(dados):
+def escrever_arquivo(dados, nome_arquivo):
     # Abre o arquivo para escrita
     # Se o arquivo existe, ele apaga os dados e escreve por cima
     # Se o arquivo nao existe, um arquivo vazio eh criado
@@ -358,14 +358,14 @@ def escrever_arquivo(dados):
 def main():
     dados = []
     grafo1 = Grafo("dados/Escola_A.xlsx", "Escola A")
-    dados.append(grafo1.tratar_dados_arquivo())
+    dados.append(grafo1.retornar_dados_arquivo())
     grafo2 = Grafo("dados/Escola_B.xlsx", "Escola B")
-    dados.append(grafo2.tratar_dados_arquivo())
+    dados.append(grafo2.retornar_dados_arquivo())
     grafo3 = Grafo("dados/Escola_C.xlsx", "Escola C")
-    dados.append(grafo3.tratar_dados_arquivo())
+    dados.append(grafo3.retornar_dados_arquivo())
     grafo4 = Grafo("dados/Escola_D.xlsx", "Escola D")
-    dados.append(grafo4.tratar_dados_arquivo())
-    escrever_arquivo(dados)
+    dados.append(grafo4.retornar_dados_arquivo())
+    escrever_arquivo(dados, "Resultados.txt")
 
 if __name__ == "__main__":
     main()
