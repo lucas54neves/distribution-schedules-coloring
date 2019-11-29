@@ -299,23 +299,73 @@ class Grafo:
                 vertice.cor = vertice.menor_cor_disponivel()
 
     def resultados(self):
-        # Retorna um inteiro representando a quantidade de cores (ou horarios),
-        # um inteiro representando a quantidade de vertices nao coloridos,
-        #return (self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.preferencias_nao_atendidas)
-        # table = []
-        # for vertice in self.vertices:
-        #     table.append([vertice.turma, vertice.materia, vertice.professor, vertice.cor])
-        # print(tabulate(table, headers=["Turma", "Materia", "Professor", "Cor"]))
+        self.imprimir_terminal()
+        self.escrever_arquivo("resultados.txt")
+
+    # Imprime os resultados do algoritmo como solicitado no enunciado do trabalho
+    def imprimir_terminal(self):
         print("{}:".format(self.nome_escola))
         print("Quantidade de cores: {}".format(max(self.vertices, key =  lambda vertice: vertice.cor).cor))
         print("Preferências atendidas pelo total de preferências: {}".format(0))
-        print("Tempo de iteração: {}".format(self.tempo_iteracao))
+
+    # Retornar os dados que devem ser escritos no arquivo
+    def tratar_dados_arquivo(self):
+        return [self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.get_preferenciais_atendidas()]
+
+# Metodo que escreve o resultado no arquivo
+# O metodo usa uma lista (lista 1) com os dados
+# Em cada posicao da lista dados tem um lista (lista 2) com os dados de uma escola
+#   Na posicao 0 da lista 2, esta o nome da escola
+#   Na posicao 1 da lista 2, esta a quantidade de horarios (ou cores) utilizada
+#       na coloracao
+#   Na posicao 2 da lista 2, esta o tempo (em segundos) do tempo que o algoritmo
+#       levou para ser executado
+#   Na posicao 3 da lista 2, esta a quantidade de vertices nao lidos
+#   Na posicao 4 da lista 2, esta uma lista 3 com as preferencis atendidas para
+#       para cada professor
+#       Em cada posicao da lista 3, tem uma tupla com o identificador do
+#           # professor e a quantidade de preferencias atendidas
+def escrever_arquivo(dados):
+    # Abre o arquivo para escrita
+    # Se o arquivo existe, ele apaga os dados e escreve por cima
+    # Se o arquivo nao existe, um arquivo vazio eh criado
+    arquivo = open(nome_arquivo, 'w')
+    arquivo.write("Resultados:")
+    arquivo.write("Quantidade de horarios utilizadas (cores):")
+    # Salva no arquivo a quantidade de horario utilizada por cada escola
+    for dado in dados:
+        arquivo.write("{}: {}".format(dado.[0], dado.[1]))
+    arquivo.write("Tempo para iteracao do algoritmo (em segundos):")
+    # Salva no arquivo o tempo gasto por cada algoritmo
+    for dado in dados:
+        arquivo.write("{}: {}".format(dado.[0], dado.[2]))
+    arquivo.write("Quantidade de vertices nao coloridos:")
+    # Salva no arquivo a quantidade de vertices noa coloridos
+    for dado in dados:
+        arquivo.write("{}: {}".format(dado.[0], dado.[3]))
+    arquivo.write("Quantidade de preferencias nao atendidas para cada professor (somente dos professores que possuem preferencias):")
+    # Salva no arquivo a quantidade de preferencias atendidas por cada professor
+    # (somente se o professor tiver preferencias) em cada escola
+    for dado in dados:
+        # Salva o nome da escola
+        arquivo.write("{}:".format(dado[0]))
+        for professor in dado[4]:
+            # Salva o nome do professor e a quantidade de preferenciais atendidas
+            arquivo.write("{}: {}".format(professor[0], professor[1]))
+    # Fecha o arquivo
+    arquivo.close()
 
 def main():
+    dados = []
     grafo1 = Grafo("dados/Escola_A.xlsx", "Escola A")
+    dados.append(grafo1.tratar_dados_arquivo())
     grafo2 = Grafo("dados/Escola_B.xlsx", "Escola B")
+    dados.append(grafo2.tratar_dados_arquivo())
     grafo3 = Grafo("dados/Escola_C.xlsx", "Escola C")
+    dados.append(grafo3.tratar_dados_arquivo())
     grafo4 = Grafo("dados/Escola_D.xlsx", "Escola D")
+    dados.append(grafo4.tratar_dados_arquivo())
+    escrever_arquivo(dados)
 
 if __name__ == "__main__":
     main()
