@@ -102,7 +102,7 @@ class Grafo:
 
         # Teste
         # print("Limite: {}".format(len(self.horarios)))
-        self.imprimir()
+        # self.imprimir()
 
     def quantidade_vertices(self):
         return len(self.vertices)
@@ -411,11 +411,11 @@ def main():
     # dados = []
     grafo1 = Grafo("data/Escola_A.xlsx", "Escola A", algoritmo)
     # dados.append(grafo1.retornar_dados_arquivo())
-    # grafo2 = Grafo("data/Escola_B.xlsx", "Escola B", algoritmo)
+    grafo2 = Grafo("data/Escola_B.xlsx", "Escola B", algoritmo)
     # dados.append(grafo2.retornar_dados_arquivo())
-    # grafo3 = Grafo("data/Escola_C.xlsx", "Escola C", algoritmo)
+    grafo3 = Grafo("data/Escola_C.xlsx", "Escola C", algoritmo)
     # dados.append(grafo3.retornar_dados_arquivo())
-    # grafo4 = Grafo("data/Escola_D.xlsx", "Escola D", algoritmo)
+    grafo4 = Grafo("data/Escola_D.xlsx", "Escola D", algoritmo)
     # dados.append(grafo4.retornar_dados_arquivo())
     # escrever_arquivo(dados, "Resultados.txt")
 
