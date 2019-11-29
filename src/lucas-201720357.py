@@ -1,3 +1,13 @@
+'''
+Algoritmos em Grafos
+GCC218 - 2019/02
+Trabalho Final de Algoritmos em Grafos
+Grupo:
+    Lucas Neves, 14A, 201720357
+    Davi Horner, 10A, 201720368
+    Thiago Luigi, 10A, 201720364
+'''
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
