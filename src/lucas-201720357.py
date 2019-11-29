@@ -12,7 +12,7 @@ Grupo:
 # -*- coding: utf-8 -*-
 
 import xlrd
-# from tabulate import tabulate
+from tabulate import tabulate
 import time
 
 class Horario:
@@ -43,12 +43,6 @@ class Vertice:
 
     def adicionar_adjacente(self, adjacente):
         self.adjacentes.append(adjacente)
-
-    def eh_adjacente(self, possivel_adjacente):
-        for adjacente in self.adjacentes:
-            if adjacente == possivel_adjacente:
-                return True
-        return False
 
     # Retorna o grau do vertice
     def get_grau(self):
@@ -105,6 +99,10 @@ class Grafo:
 
         # Metodo que imprime o relatorio no terminal
         self.imprimir_terminal()
+
+        # Teste
+        # print("Limite: {}".format(len(self.horarios)))
+        self.imprimir()
 
     def quantidade_vertices(self):
         return len(self.vertices)
@@ -265,19 +263,19 @@ class Grafo:
                     # Verifica se os vertices possuem uma mesma materia
                     # Seguindo o que o enunciado do trabalho fala: nao eh permitida
                     # a alocacao de duas aulas com a mesma materia no mesmo horario
-                    if vertice1.materia == vertice2.materia and not vertice1.eh_adjacente(vertice2):
-                        self.adicionar_aresta(vertice1, vertice2)
+                    # if vertice1.materia == vertice2.materia:
+                    #     self.adicionar_aresta(vertice1, vertice2)
 
                     # Verifica se os vertices possuem um mesmo professor
                     # Seguindo o que o enunciado do trabalho fala: nao eh permitida
                     # a alocacao de duas aulas com o mesmo professor no mesmo horario
-                    if vertice1.professor == vertice2.professor and not vertice1.eh_adjacente(vertice2):
+                    if vertice1.professor == vertice2.professor:
                         self.adicionar_aresta(vertice1, vertice2)
 
                     # Verifica se os vertices possuem uma mesma turma
                     # Seguindo o que o enunciado do trabalho fala: nao eh permitida
                     # a alocacao de duas aulas para a mesma turma no mesmo horario
-                    if vertice1.turma == vertice2.turma and not vertice1.eh_adjacente(vertice2):
+                    if vertice1.turma == vertice2.turma:
                         self.adicionar_aresta(vertice1, vertice2)
 
     def adicionar_aresta(self, vertice1, vertice2):
@@ -354,6 +352,14 @@ class Grafo:
     def retornar_dados_arquivo(self):
         return [self.nome_escola, self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.get_preferenciais_atendidas()]
 
+    # Imprime o grafo para testes
+    def imprimir(self):
+        table = []
+        for x in self.vertices:
+            table.append(['Turma: {}'.format(x.turma) , 'Matéria: {}'.format(x.materia), x.professor, x.cor])
+            # table.append(['Turma: {}'.format(x.turma) , 'Matéria: {}'.format(x.materia), x.professor, self.horarios[x.cor]])
+        print(tabulate(table, headers=["Turma", "Matéria", "Professor", "Hora/Cor" ], tablefmt="fancy_grid"))
+
 # Metodo que escreve o resultado no arquivo
 # O metodo usa uma lista (lista 1) com os dados
 # Em cada posicao da lista dados tem um lista (lista 2) com os dados de uma escola
@@ -403,13 +409,13 @@ def main():
     print("[2] Algoritmo Dsatur")
     algoritmo = int(input("Entre com o algoritmo desejado: "))
     # dados = []
-    grafo1 = Grafo("../dados/Escola_A.xlsx", "Escola A", algoritmo)
+    grafo1 = Grafo("data/Escola_A.xlsx", "Escola A", algoritmo)
     # dados.append(grafo1.retornar_dados_arquivo())
-    grafo2 = Grafo("../dados/Escola_B.xlsx", "Escola B", algoritmo)
+    # grafo2 = Grafo("data/Escola_B.xlsx", "Escola B", algoritmo)
     # dados.append(grafo2.retornar_dados_arquivo())
-    grafo3 = Grafo("../dados/Escola_C.xlsx", "Escola C", algoritmo)
+    # grafo3 = Grafo("data/Escola_C.xlsx", "Escola C", algoritmo)
     # dados.append(grafo3.retornar_dados_arquivo())
-    grafo4 = Grafo("../dados/Escola_D.xlsx", "Escola D", algoritmo)
+    # grafo4 = Grafo("data/Escola_D.xlsx", "Escola D", algoritmo)
     # dados.append(grafo4.retornar_dados_arquivo())
     # escrever_arquivo(dados, "Resultados.txt")
 
