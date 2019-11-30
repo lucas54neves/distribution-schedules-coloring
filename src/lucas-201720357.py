@@ -39,7 +39,7 @@ class Vertice:
         self.professor = professor
         self.turma = turma
         self.adjacentes = []
-        self.cor = None
+        self.cor = -1
 
     def adicionar_adjacente(self, adjacente):
         self.adjacentes.append(adjacente)
@@ -53,17 +53,27 @@ class Vertice:
     def get_saturacao(self):
         saturacao = 0
         for adjacente in self.adjacentes:
-            if adjacente.cor is not None:
+            if adjacente.cor is not -1:
                 saturacao += 1
         return saturacao
 
-    def menor_cor_disponivel(self):
+    def menor_cor_disponivel(self, horarios, restricoes):
         menor = 0
 
+        self.adjacentes.sort(key=lambda vertice: vertice.cor)
         for vertice in self.adjacentes:
             if vertice.cor == menor:
                 menor += 1
+                if (menor >= len(horarios)):
+                    menor = 0
 
+        for restricao in restricoes:
+            if restricao[pos] == menor:
+                menor += 1
+                if (menor >= len(horarios)):
+                    menor = 0
+
+        # return horarios[menor]
         return menor
 
     def __str__(self):
@@ -142,7 +152,8 @@ class Grafo:
                 # 3 aulas, 3 vertices seram adicionados para representar cada uma
                 # das aulas.
                 for i in range(quantidade_aulas):
-                    self.adicionar_vertice(materia, professor, turma)
+                    vertice = Vertice(len(self.vertices), materia, professor, turma)
+                    self.adicionar_vertice(vertice)
 
 
     def ler_configuracoes(self, planilha):
@@ -228,8 +239,8 @@ class Grafo:
 
                 self.adicionar_preferencias_professores(professor, hora, dia)
 
-    def adicionar_vertice(self, materia, professor, turma):
-        self.vertices.append(Vertice(len(self.vertices), materia, professor, turma))
+    def adicionar_vertice(self, vertice):
+        self.vertices.append(vertice)
 
     def adicionar_hora(self, hora):
         self.horas.append(hora)
@@ -256,9 +267,6 @@ class Grafo:
     def verificar_restricoes(self):
         for vertice1 in self.vertices:
             for vertice2 in self. vertices:
-                # A verificacao so ira ocorrer se os dois vertices forem diferentes
-                # e se os vertices nao forem adjacentes. Se os vertices ja forem
-                # adjacentes, isso significa que ja existe uma restricao entre os dois vertices
                 if vertice1 != vertice2:
                     # Verifica se os vertices possuem uma mesma materia
                     # Seguindo o que o enunciado do trabalho fala: nao eh permitida
@@ -296,8 +304,8 @@ class Grafo:
     def heuristica_gulosa(self):
         self.vertices[0].cor = 0
         for vertice in self.vertices:
-            if vertice.cor == None:
-                vertice.cor = vertice.menor_cor_disponivel()
+            if vertice.cor == -1:
+                vertice.cor = vertice.menor_cor_disponivel(self.horarios)
 
     def dsatur(self):
         # Copia a lista de vertices para realizar a coloracao
@@ -319,7 +327,7 @@ class Grafo:
             proximo = self.proximo_vertice(lista_para_colorir)
 
             # Colore o vertice com a menor cor disponivel
-            proximo.cor = proximo.menor_cor_disponivel()
+            proximo.cor = proximo.menor_cor_disponivel(self.horarios)
 
             # Remove o vertice colorido da lista
             lista_para_colorir.remove(proximo)
@@ -351,6 +359,9 @@ class Grafo:
     # Retornar os dados que devem ser escritos no arquivo
     def retornar_dados_arquivo(self):
         return [self.nome_escola, self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.get_preferenciais_atendidas()]
+
+    # def get_preferenciais_atendidas(self):
+
 
     # Imprime o grafo para testes
     def imprimir(self):
@@ -409,13 +420,13 @@ def main():
     print("[2] Algoritmo Dsatur")
     algoritmo = int(input("Entre com o algoritmo desejado: "))
     # dados = []
-    grafo1 = Grafo("data/Escola_A.xlsx", "Escola A", algoritmo)
+    grafo1 = Grafo("../data/Escola_A.xlsx", "Escola A", algoritmo)
     # dados.append(grafo1.retornar_dados_arquivo())
-    grafo2 = Grafo("data/Escola_B.xlsx", "Escola B", algoritmo)
+    grafo2 = Grafo("../data/Escola_B.xlsx", "Escola B", algoritmo)
     # dados.append(grafo2.retornar_dados_arquivo())
-    grafo3 = Grafo("data/Escola_C.xlsx", "Escola C", algoritmo)
+    grafo3 = Grafo("../data/Escola_C.xlsx", "Escola C", algoritmo)
     # dados.append(grafo3.retornar_dados_arquivo())
-    grafo4 = Grafo("data/Escola_D.xlsx", "Escola D", algoritmo)
+    grafo4 = Grafo("../data/Escola_D.xlsx", "Escola D", algoritmo)
     # dados.append(grafo4.retornar_dados_arquivo())
     # escrever_arquivo(dados, "Resultados.txt")
 
