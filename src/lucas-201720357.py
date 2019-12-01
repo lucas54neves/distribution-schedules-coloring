@@ -67,11 +67,13 @@ class Vertice:
                 if (menor >= len(horarios)):
                     menor = 0
 
-        for restricao in restricoes:
-            if restricao[pos] == menor:
-                menor += 1
-                if (menor >= len(horarios)):
-                    menor = 0
+        # Verifica se a cor (horario) escolhida eh uma das restricoes do professor
+        if self.professor in restricoes:
+            for restricao in restricoes.get(self.professor):
+                if restricao.hora == horarios[menor].hora and restricao.dia == horarios[menor].dia:
+                    menor += 1
+                    if (menor >= len(horarios)):
+                        menor = 0
 
         # return horarios[menor]
         return menor
@@ -80,15 +82,15 @@ class Vertice:
         return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma)
 
 class Grafo:
-    def __init__(self, nome_arquivo, nome_escola, algoritmo_selecionado):
+    def __init__(self, nome_arquivo, nome_escola):
         # Lista que armazena os vertices do grafo
         self.vertices = []
         # Lista que armazena as horas disponiveis para aula por dia
         self.horas = []
         # Lista que armazena os horarios disponiveis para aula por semana
         self.horarios = []
-        # Lista que armazena as restricoes de horarios dos professores
-        self.restricoes_professores = []
+        # Dicionario que armazena as restricoes de horarios dos professores
+        self.restricoes_professores = {}
         # Lista que armazena as restricoes de horarios das turmas
         self.restricoes_turmas = []
         # Lista que armazena as preferencias de horarios dos professores
@@ -103,7 +105,7 @@ class Grafo:
         self.verificar_restricoes()
         # Metodo que colere o grafo
         inicio = time.time()
-        self.colorir(algoritmo_selecionado)
+        self.dsatur()
         fim = time.time()
         self.tempo_iteracao = fim - inicio
 
@@ -185,14 +187,13 @@ class Grafo:
                 valores = aba.row_values(i)
 
                 # Pega o numero relativo ao professor
-                auxiliar = valores[0].split()
-                professor = int(auxiliar[1])
+                professor = valores[0]
 
                 # Pega a hora da preferencia de horario
                 hora = float(valores[1])
 
                 # Pega o dia da preferencia de horario
-                dia = valores[2].encode('utf-8')
+                dia = str(valores[2])
 
                 self.adicionar_restricoes_professores(professor, hora, dia)
 
@@ -256,7 +257,12 @@ class Grafo:
         self.horarios.append(Horario(hora, dia))
 
     def adicionar_restricoes_professores(self, professor, hora, dia):
-        self.restricoes_professores.append(Escolha(professor, Horario(hora, dia)))
+        if professor in self.restricoes_professores:
+            self.restricoes_professores.get(professor).append(Horario(hora, dia))
+        else:
+            self.restricoes_professores[professor] = []
+            self.restricoes_professores[professor].append(Horario(hora, dia))
+        #self.restricoes_professores.append(Escolha(professor, Horario(hora, dia)))
 
     def adicionar_restricoes_turmas(self, turma, hora, dia):
         self.restricoes_turmas.append(Escolha(turma, Horario(hora, dia)))
@@ -290,23 +296,7 @@ class Grafo:
         vertice1.adicionar_adjacente(vertice2)
         vertice2.adicionar_adjacente(vertice1)
 
-    # Realiza a coloracao de acordo com o algoritmo selecionado
-    # [1] Heristica Gulosa
-    # [2] Algoritmo Dsatur
-    def colorir(self, algoritmo_selecionado):
-        if algoritmo_selecionado == 1:
-            self.heuristica_gulosa()
-        elif algoritmo_selecionado == 2:
-            self.dsatur()
-        else:
-            print("Nenhum algoritmo selecionado")
-
-    def heuristica_gulosa(self):
-        self.vertices[0].cor = 0
-        for vertice in self.vertices:
-            if vertice.cor == -1:
-                vertice.cor = vertice.menor_cor_disponivel(self.horarios)
-
+    # Realiza a coloracao aplicando o Algoritmo Dsatur
     def dsatur(self):
         # Copia a lista de vertices para realizar a coloracao
         lista_para_colorir = self.vertices.copy()
@@ -327,7 +317,7 @@ class Grafo:
             proximo = self.proximo_vertice(lista_para_colorir)
 
             # Colore o vertice com a menor cor disponivel
-            proximo.cor = proximo.menor_cor_disponivel(self.horarios)
+            proximo.cor = proximo.menor_cor_disponivel(self.horarios, self.restricoes_professores)
 
             # Remove o vertice colorido da lista
             lista_para_colorir.remove(proximo)
@@ -415,18 +405,14 @@ def escrever_arquivo(dados, nome_arquivo):
     arquivo.close()
 
 def main():
-    print("Opcoes de algoritmos")
-    print("[1] Heuristica Gulosa")
-    print("[2] Algoritmo Dsatur")
-    algoritmo = int(input("Entre com o algoritmo desejado: "))
     # dados = []
-    grafo1 = Grafo("../data/Escola_A.xlsx", "Escola A", algoritmo)
+    grafo1 = Grafo("../data/Escola_A.xlsx", "Escola A")
     # dados.append(grafo1.retornar_dados_arquivo())
-    grafo2 = Grafo("../data/Escola_B.xlsx", "Escola B", algoritmo)
+    grafo2 = Grafo("../data/Escola_B.xlsx", "Escola B")
     # dados.append(grafo2.retornar_dados_arquivo())
-    grafo3 = Grafo("../data/Escola_C.xlsx", "Escola C", algoritmo)
+    grafo3 = Grafo("../data/Escola_C.xlsx", "Escola C")
     # dados.append(grafo3.retornar_dados_arquivo())
-    grafo4 = Grafo("../data/Escola_D.xlsx", "Escola D", algoritmo)
+    grafo4 = Grafo("../data/Escola_D.xlsx", "Escola D")
     # dados.append(grafo4.retornar_dados_arquivo())
     # escrever_arquivo(dados, "Resultados.txt")
 
