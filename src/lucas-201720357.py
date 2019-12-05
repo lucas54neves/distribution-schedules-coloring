@@ -23,15 +23,6 @@ class Horario:
     def __str__(self):
         return "Hora: " + str(self.hora) + " - Dia: " + str(self.dia)
 
-# A classe Escolha representa a preferencia de horario ou a restricao de horario
-class Escolha:
-    def __init__(self, identificador, horario):
-        self.identificador = identificador
-        self.horario = horario
-
-    def __str__(self):
-        return "Identificador: " + str(self.identificador) + " " + str(self.horario)
-
 class Vertice:
     def __init__(self, indice, materia, professor, turma):
         self.indice = indice
@@ -105,10 +96,10 @@ class Grafo:
         self.horarios = []
         # Dicionario que armazena as restricoes de horarios dos professores
         self.restricoes_professores = {}
-        # Lista que armazena as restricoes de horarios das turmas
-        self.restricoes_turmas = []
-        # Lista que armazena as preferencias de horarios dos professores
-        self.preferencias_professores = []
+        # Dicionario que armazena as restricoes de horarios das turmas
+        self.restricoes_turmas = {}
+        # Dicionario que armazena as preferencias de horarios dos professores
+        self.preferencias_professores = {}
         # Dicionario que armazena a quantidade de preferenciais atendidas para
         # cada professor
         self.preferenciais_atendidas = {}
@@ -263,10 +254,18 @@ class Grafo:
             self.restricoes_professores[professor].append(Horario(hora, dia))
 
     def adicionar_restricoes_turmas(self, turma, hora, dia):
-        self.restricoes_turmas.append(Escolha(turma, Horario(hora, dia)))
+        if turma in self.restricoes_turmas:
+            self.restricoes_turmas.get(turma).append(Horario(hora, dia))
+        else:
+            self.restricoes_turmas[turma] = []
+            self.restricoes_turmas[turma].append(Horario(hora, dia))
 
     def adicionar_preferencias_professores(self, professor, hora, dia):
-        self.preferencias_professores.append(Escolha(professor, Horario(hora, dia)))
+        if professor in self.preferencias_professores:
+            self.preferencias_professores.get(professor).append(Horario(hora, dia))
+        else:
+            self.preferencias_professores[professor] = []
+            self.preferencias_professores[professor].append(Horario(hora, dia))
 
     def verificar_restricoes(self):
         for vertice1 in self.vertices:
