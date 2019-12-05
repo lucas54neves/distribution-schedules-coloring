@@ -71,12 +71,26 @@ class Vertice:
         if self.professor in restricoes:
             for restricao in restricoes.get(self.professor):
                 if restricao.hora == horarios[menor].hora and restricao.dia == horarios[menor].dia:
-                    menor += 1
+                    menor = self.proxima_cor(menor)
+
                     if (menor >= len(horarios)):
                         menor = 0
 
         # return horarios[menor]
         return menor
+
+    def proxima_cor(self, indisponivel):
+        proxima = 0
+        self.adjacentes.sort(key=lambda vertice: vertice.cor)
+
+        for adjacente in self.adjacentes:
+            if proxima == adjacente.cor:
+                proxima += 1
+
+                if proxima == indisponivel:
+                    proxima += 1
+
+        return proxima
 
     def __str__(self):
         return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma)
@@ -95,29 +109,40 @@ class Grafo:
         self.restricoes_turmas = []
         # Lista que armazena as preferencias de horarios dos professores
         self.preferencias_professores = []
+        # Dicionario que armazena a quantidade de preferenciais atendidas para
+        # cada professor
+        self.preferenciais_atendidas = {}
         # Variavel para guardar a quantidade de vertices coloridos
         self.vertices_coloridos = 0
         # Nome da escola para imprimir no resultado
         self.nome_escola = nome_escola
         # Metodo que realiza a leitura do arquivo
         self.ler_arquivo(nome_arquivo)
+        # Variavel que para armazenar a quantidade de vertices nao coloridos
+        self.quantidade_vertices_nao_coloridos = len(self.vertices)
         # Metodo que verifica todas as restricoes
         self.verificar_restricoes()
         # Metodo que colere o grafo
-        inicio = time.time()
+        inicio = time.time() # Tempo inicial
         self.dsatur()
-        fim = time.time()
+        fim = time.time() # Tempo final
+        # Variavel que armazena o tempo de execucao do algoritmo
         self.tempo_iteracao = fim - inicio
-
+        # Variavel que armazena a quantidade de cores usadas
+        # Como existe a cor zero, a quantidade de cores sera o valor sucessor
+        # ao valor relativo a maior cor
+        self.quantidade_cores = max(self.vertices, key =  lambda vertice: vertice.cor).cor + 1
+        # Metodo que verifica se existe tres ou mais aulas geminadas
+        # self.verificar_geminadas()
+        # Metodo que verifica se existe grande janelas de horarios para uma turma
+        # self.verificar_janelas()
+        # Metodo que verifica as preferencias dos professores
+        # self.verificar_preferencias()
         # Metodo que imprime o relatorio no terminal
         self.imprimir_terminal()
-
         # Teste
         # print("Limite: {}".format(len(self.horarios)))
         # self.imprimir()
-
-    def quantidade_vertices(self):
-        return len(self.vertices)
 
     def ler_arquivo(self, nome_arquivo):
         planilha = xlrd.open_workbook(nome_arquivo)
@@ -130,24 +155,18 @@ class Grafo:
     def ler_dados(self, planilha):
         # Pega a primeira aba da planilha
         aba = planilha.sheet_by_index(0)
-
         # Loop para leitura das linhas
         for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
-
                 # Pega a letra relativa a materia
                 materia = valores[0]
-
                 # Pega o numero relativo a turma
                 turma = valores[1]
-
                 # Pega o numero relativo ao professor
                 professor = valores[2]
-
                 # Pega a quantidade de aulas
                 quantidade_aulas = int(valores[3])
-
                 # Adiciona o vertice com as informacoes coletas nessa linha da aba.
                 # Cada aula eh representada por um vertice. Se existe uma materia A
                 # que eh ministrada por um professor 1 para uma turma B que possui
@@ -157,87 +176,67 @@ class Grafo:
                     vertice = Vertice(len(self.vertices), materia, professor, turma)
                     self.adicionar_vertice(vertice)
 
-
     def ler_configuracoes(self, planilha):
         # Pega a segunda aba da planilha
         # Nessa aba, estao as horas disponiveis nos dias
         aba = planilha.sheet_by_index(1)
-
         # Loop para leitura das linhas
         for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
-
                 # Pega a hora dessa linha da aba
                 hora = float(valores[0])
-
                 # Adiciona a hora a lista de horas
                 self.adicionar_hora(hora)
-
         self.criacao_cores()
 
     def ler_restricoes_professores(self, planilha):
         # Pega a terceira aba da planilha
         # Essa aba estao as restricoes de horarios de cada professor
         aba = planilha.sheet_by_index(2)
-
         # Loop para leitura das linhas
         for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
-
                 # Pega o numero relativo ao professor
                 professor = valores[0]
-
                 # Pega a hora da preferencia de horario
                 hora = float(valores[1])
-
                 # Pega o dia da preferencia de horario
                 dia = str(valores[2])
-
                 self.adicionar_restricoes_professores(professor, hora, dia)
 
     def ler_restricoes_turma(self, planilha):
         # Pega a quarta aba da planilha
         # Nessa aba tem as restricoes de horarios de cada turma
         aba = planilha.sheet_by_index(3)
-
         # Loop para leitura das linhas
         for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
-
                 # Pega o numero relativo a turma
                 turma = valores[0]
-
                 # Pega a hora da preferencia de horario
                 hora = float(valores[1])
-
                 # Pega o dia da preferencia de horario
                 dia = valores[2].encode('utf-8')
-
                 self.adicionar_restricoes_turmas(turma, hora, dia)
 
     def ler_preferencias(self, planilha):
         # Pega a quinta aba da planilha
         # Essa aba estao as preferencias de horarios de cada professor
         aba = planilha.sheet_by_index(4)
-
         # Loop para leitura das linhas
         for i in range(aba.nrows):
             if i != 0:
                 valores = aba.row_values(i)
-
                 # Pega o numero relativo ao professor
                 auxiliar = valores[0].split()
                 professor = int(auxiliar[1])
-
                 # Pega a hora da preferencia de horario
                 hora = float(valores[1])
-
                 # Pega o dia da preferencia de horario
                 dia = valores[2].encode('utf-8')
-
                 self.adicionar_preferencias_professores(professor, hora, dia)
 
     def adicionar_vertice(self, vertice):
@@ -262,7 +261,6 @@ class Grafo:
         else:
             self.restricoes_professores[professor] = []
             self.restricoes_professores[professor].append(Horario(hora, dia))
-        #self.restricoes_professores.append(Escolha(professor, Horario(hora, dia)))
 
     def adicionar_restricoes_turmas(self, turma, hora, dia):
         self.restricoes_turmas.append(Escolha(turma, Horario(hora, dia)))
@@ -272,20 +270,13 @@ class Grafo:
 
     def verificar_restricoes(self):
         for vertice1 in self.vertices:
-            for vertice2 in self. vertices:
+            for vertice2 in self.vertices:
                 if vertice1 != vertice2:
-                    # Verifica se os vertices possuem uma mesma materia
-                    # Seguindo o que o enunciado do trabalho fala: nao eh permitida
-                    # a alocacao de duas aulas com a mesma materia no mesmo horario
-                    # if vertice1.materia == vertice2.materia:
-                    #     self.adicionar_aresta(vertice1, vertice2)
-
                     # Verifica se os vertices possuem um mesmo professor
                     # Seguindo o que o enunciado do trabalho fala: nao eh permitida
                     # a alocacao de duas aulas com o mesmo professor no mesmo horario
                     if vertice1.professor == vertice2.professor:
                         self.adicionar_aresta(vertice1, vertice2)
-
                     # Verifica se os vertices possuem uma mesma turma
                     # Seguindo o que o enunciado do trabalho fala: nao eh permitida
                     # a alocacao de duas aulas para a mesma turma no mesmo horario
@@ -300,58 +291,72 @@ class Grafo:
     def dsatur(self):
         # Copia a lista de vertices para realizar a coloracao
         lista_para_colorir = self.vertices.copy()
-
         # Ordena em ordem decrescente a lista que sera usada na coloracao
         lista_para_colorir.sort(key=lambda vertice: vertice.get_grau(), reverse=True)
-
         # Atribui a cor 0 para o vertice de maior grau
         lista_para_colorir[0].cor = 0
-
+        # Decrementa a variavel que armazena a quantidade de vertices nao coloridos
+        self.quantidade_vertices_nao_coloridos -= 1
         # Remove o vertice colorido da lista
         lista_para_colorir.pop(0)
-
         # Executa o algoritmo enquanto a lista com os vertices para colorir nao
         # esteja vazia
         while lista_para_colorir:
             # Seleciona o proximo vertice para colorir
             proximo = self.proximo_vertice(lista_para_colorir)
-
             # Colore o vertice com a menor cor disponivel
             proximo.cor = proximo.menor_cor_disponivel(self.horarios, self.restricoes_professores)
-
+            # Decrementa a variavel que armazena a quantidade de vertices nao coloridos
+            self.quantidade_vertices_nao_coloridos -= 1
             # Remove o vertice colorido da lista
             lista_para_colorir.remove(proximo)
 
     def proximo_vertice(self, lista_vertices):
         saturacoes = {}
         graus = {}
-
         for vertice in lista_vertices:
             saturacoes[vertice] = vertice.get_saturacao()
             graus[vertice] = vertice.get_grau()
-
         if len(saturacoes):
             # Seleciona a maior (ou maiores) saturacao (ou saturacoes)
             # Se tiver mais de um vertice com a maior saturacao, o vertice com
             # maior grau eh selecionado
             maior_saturacao = max(saturacoes.values())
             maiores_saturacao = {v: saturacao for v, saturacao in graus.items() if saturacoes[v] == maior_saturacao}
-
             # Retorna o vertice com maior grau dos vertices com maiores saturacao
             return max(maiores_saturacao, key = maiores_saturacao.get)
 
     # Imprime os resultados do algoritmo como solicitado no enunciado do trabalho
     def imprimir_terminal(self):
         print("{}:".format(self.nome_escola))
-        print("Quantidade de cores: {}".format(max(self.vertices, key =  lambda vertice: vertice.cor).cor))
+        print("Quantidade de cores: {}".format(self.quantidade_cores))
         print("Preferências atendidas pelo total de preferências: {}".format(0))
+        conflito = 0
+        for vertice in self.vertices:
+            for adjacente in vertice.adjacentes:
+                if vertice.cor == adjacente.cor:
+                    conflito += 1
+        print("Conflito: {}".format(conflito))
 
     # Retornar os dados que devem ser escritos no arquivo
     def retornar_dados_arquivo(self):
-        return [self.nome_escola, self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.get_preferenciais_atendidas()]
+        return [self.nome_escola, self.quantidade_cores, self.tempo_iteracao, self.quantidade_vertices_nao_coloridos, self.preferenciais_atendidas]
 
-    # def get_preferenciais_atendidas(self):
+    # Metodo que verifica se existe tres ou mais aulas geminadas
+    # def verificar_geminadas(self):
+    #     aulas_por_dia = len(self.horarios) / 5
+    #
+    #     for vertice1 in self.vertices:
+    #         for vertice2 in self.vertices:
+    #             for vertice3 in self.vertices:
+    #                 if vertice1 != vertice2 and vertice2 != vertice3:
+    #                     if
 
+    # Metodo que verifica se existe grande janelas de horarios para uma turma
+    # def verificar_janelas(self):
+
+    # Metodo que verifica as preferencias dos professores
+    # def verificar_preferencias(self):
 
     # Imprime o grafo para testes
     def imprimir(self):
@@ -379,42 +384,43 @@ def escrever_arquivo(dados, nome_arquivo):
     # Se o arquivo existe, ele apaga os dados e escreve por cima
     # Se o arquivo nao existe, um arquivo vazio eh criado
     arquivo = open(nome_arquivo, 'w')
-    arquivo.write("Resultados:")
-    arquivo.write("Quantidade de horarios utilizadas (cores):")
+    arquivo.write("Resultados:\n")
+    arquivo.write("Quantidade de horarios utilizadas (cores):\n")
     # Salva no arquivo a quantidade de horario utilizada por cada escola
     for dado in dados:
-        arquivo.write("{}: {}".format(dado[0], dado[1]))
-    arquivo.write("Tempo para iteracao do algoritmo (em segundos):")
+        arquivo.write("{}: {}\n".format(dado[0], dado[1]))
+    arquivo.write("Tempo para iteracao do algoritmo (em segundos):\n")
     # Salva no arquivo o tempo gasto por cada algoritmo
     for dado in dados:
-        arquivo.write("{}: {}".format(dado[0], dado[2]))
-    arquivo.write("Quantidade de vertices nao coloridos:")
+        arquivo.write("{}: {}\n".format(dado[0], dado[2]))
+    arquivo.write("Quantidade de vertices nao coloridos:\n")
     # Salva no arquivo a quantidade de vertices noa coloridos
     for dado in dados:
-        arquivo.write("{}: {}".format(dado[0], dado[3]))
-    arquivo.write("Quantidade de preferencias nao atendidas para cada professor (somente dos professores que possuem preferencias):")
+        arquivo.write("{}: {}\n".format(dado[0], dado[3]))
+    arquivo.write("Quantidade de preferencias nao atendidas para cada professor (somente dos professores que possuem preferencias):\n")
     # Salva no arquivo a quantidade de preferencias atendidas por cada professor
     # (somente se o professor tiver preferencias) em cada escola
     for dado in dados:
         # Salva o nome da escola
-        arquivo.write("{}:".format(dado[0]))
-        for professor in dado[4]:
-            # Salva o nome do professor e a quantidade de preferenciais atendidas
-            arquivo.write("{}: {}".format(professor[0], professor[1]))
+        arquivo.write("{}:\n".format(dado[0]))
+        if dado[4]:
+            for professor in dado[4]:
+                # Salva o nome do professor e a quantidade de preferenciais atendidas
+                arquivo.write("{}: {}\n".format(professor[0], professor[1]))
     # Fecha o arquivo
     arquivo.close()
 
 def main():
-    # dados = []
+    dados = []
     grafo1 = Grafo("../data/Escola_A.xlsx", "Escola A")
-    # dados.append(grafo1.retornar_dados_arquivo())
+    dados.append(grafo1.retornar_dados_arquivo())
     grafo2 = Grafo("../data/Escola_B.xlsx", "Escola B")
-    # dados.append(grafo2.retornar_dados_arquivo())
+    dados.append(grafo2.retornar_dados_arquivo())
     grafo3 = Grafo("../data/Escola_C.xlsx", "Escola C")
-    # dados.append(grafo3.retornar_dados_arquivo())
+    dados.append(grafo3.retornar_dados_arquivo())
     grafo4 = Grafo("../data/Escola_D.xlsx", "Escola D")
-    # dados.append(grafo4.retornar_dados_arquivo())
-    # escrever_arquivo(dados, "Resultados.txt")
+    dados.append(grafo4.retornar_dados_arquivo())
+    escrever_arquivo(dados, "../data/Resultados.txt")
 
 if __name__ == "__main__":
     main()
