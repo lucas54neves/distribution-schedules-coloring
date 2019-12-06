@@ -74,6 +74,8 @@ class Vertice:
                     proxima += 1
             # Verifica se a cor esta dentro dos horarios disponiveis
             if (proxima >= len(horarios)):
+                # Se a cor ultrapassar o limite de cores, a primeira cor eh
+                # escolhida como a proxima cor disponivel
                 proxima = 0
         # Retorna a cor
         return proxima
@@ -91,6 +93,27 @@ class Vertice:
         self.cor = cor
         # Retorna verdadeiro
         return True
+
+    # Metodo que tenta resolver as janelas if math.ceil(vertice1.cor / aulas_por_dia) == math.ceil(vertice2.cor / aulas_por_dia):
+    def cor_disponivel_janela(self, vertice_aula_anterior, aulas_por_dia, horarios):
+        # A melhor cor comeca com a cor seguinte do vertice da aula anterior
+        melhor = vertice_aula_anterior.cor + 1
+        # Ordena os vertices adjacentes por cor para melhorar a eficiencia da busca
+        self.adjacentes.sort(key=lambda vertice: vertice.cor)
+        # Loop que verifica se tem alguma vertice adjacente com a possivel melhor
+        # cor
+        for adjacente in self.adjacentes:
+            # Verifica se existe algum vertice adjacente com a possivel melhor cor
+            if melhor == adjacente.cor:
+                # Escolhe a proxima cor como a possivel melhor cor
+                melhor += 1
+            # Verifica se a cor esta dentro dos horarios disponiveis
+            if (melhor >= len(horarios)):
+                # Se a cor ultrapassar o limite de cores, a primeira cor eh
+                # escolhida como a possivel melhor cor
+                proxima = 0
+        # Retorna a melhor cor disponivel para janela
+        return melhor
 
     def __str__(self):
         return "Vertice " + str(self.indice) + " =>" + " Materia: " + str(self.materia) + " Professor: " + str(self.professor) + " Turma: " + str(self.turma)
@@ -132,7 +155,7 @@ class Grafo:
         # Metodo que verifica se existe tres ou mais aulas geminadas
         self.verificar_geminadas()
         # Metodo que verifica se existe grande janelas de horarios para uma turma
-        # self.verificar_janelas()
+        self.verificar_janelas()
         # Metodo que verifica as preferencias dos professores
         self.verificar_preferencias()
         # Tempo final
@@ -400,7 +423,25 @@ class Grafo:
                                         vertice3.melhor_cor_disponivel(self.horarios)
 
     # Metodo que verifica se existe grande janelas de horarios para uma turma
-    # def verificar_janelas(self):
+    def verificar_janelas(self):
+        # Calcula a quantidade de aulas por dia
+        aulas_por_dia = len(self.horarios) / 5
+        # Orneda na lista de vertices por cor (horarios) para melhorar a
+        # eficiencia da busca da cor
+        self.vertices.sort(key=lambda vertice: vertice.cor)
+        # Loop duplo que verifica se existe janelas entre duas aulas para mesma
+        # materia
+        for vertice1 in self.vertices:
+            for vertice2 in self.vertices:
+                if vertice1 != vertice2:
+                    # Verifica se as aulas sao da mesma turma
+                    if vertice1.turma == vertice2.turma:
+                        # Verifica se aulas estao no mesmo dia
+                        if math.ceil(vertice1.cor / aulas_por_dia) == math.ceil(vertice2.cor / aulas_por_dia):
+                            # Verifica se tem uma janela de pelo menos dois horarios
+                            if vertice1.cor + 2 <= vertice2.cor:
+                                # Troca a aula para a melhor cor disponivel
+                                vertice2.cor = vertice2.cor_disponivel_janela(vertice1, aulas_por_dia, self.horarios)
 
     # Metodo que verifica as preferencias dos professores
     def verificar_preferencias(self):
@@ -411,7 +452,6 @@ class Grafo:
                         if vertice.verificar_preferencia(self.horarios.index(preferencia)):
                             self.adicionar_preferencias_atendidas(vertice.professor)
 
-
     # Imprime o grafo para testes
     def imprimir(self):
         table = []
@@ -419,6 +459,8 @@ class Grafo:
             table.append(['Turma: {}'.format(x.turma) , 'Matéria: {}'.format(x.materia), x.professor, x.cor])
             # table.append(['Turma: {}'.format(x.turma) , 'Matéria: {}'.format(x.materia), x.professor, self.horarios[x.cor]])
         print(tabulate(table, headers=["Turma", "Matéria", "Professor", "Hora/Cor" ], tablefmt="fancy_grid"))
+
+    # Metodo que calcula a porcentagem de preferencias atendidas
 
 # Metodo que escreve o resultado no arquivo
 # O metodo usa uma lista (lista 1) com os dados
@@ -446,7 +488,8 @@ def escrever_arquivo(dados, nome_arquivo):
     arquivo.write("Tempo para iteracao do algoritmo (em segundos):\n")
     # Salva no arquivo o tempo gasto por cada algoritmo
     for dado in dados:
-        arquivo.write("{}: {}\n".format(dado[0], dado[2]))
+        round(3.141592653589793, 2)
+        arquivo.write("{}: {}\n".format(dado[0], round(dado[2], 2)))
     arquivo.write("Quantidade de vertices nao coloridos:\n")
     # Salva no arquivo a quantidade de vertices noa coloridos
     for dado in dados:
