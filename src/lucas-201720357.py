@@ -265,7 +265,7 @@ class Grafo:
                 # Pega a hora da preferencia de horario
                 hora = float(valores[1])
                 # Pega o dia da preferencia de horario
-                dia = valores[2].encode('utf-8')
+                dia = str(valores[2])
                 self.adicionar_restricoes_turmas(turma, hora, dia)
 
     # Metodo que realiza a leitura da aba Preferencias da planilha
