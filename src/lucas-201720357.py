@@ -543,7 +543,6 @@ def escrever_arquivo(dados, nome_arquivo):
     arquivo.write("Tempo para iteracao do algoritmo (em segundos):\n")
     # Salva no arquivo o tempo gasto por cada algoritmo
     for dado in dados:
-        round(3.141592653589793, 2)
         arquivo.write("{}: {}\n".format(dado[0], round(dado[2], 2)))
     arquivo.write("Quantidade de vertices nao coloridos:\n")
     # Salva no arquivo a quantidade de vertices noa coloridos
