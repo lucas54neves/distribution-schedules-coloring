@@ -14,6 +14,7 @@ Grupo:
 import xlrd
 from tabulate import tabulate
 import time
+import math
 
 class Vertice:
     def __init__(self, indice, materia, professor, turma):
@@ -56,7 +57,7 @@ class Vertice:
         return menor
 
     # Metodo que verifica a proxima menor cor disponivel
-    def proxima_cor_disponivel(self, horarios):
+    def melhor_cor_disponivel(self, horarios):
         # A cor comeca com zero
         proxima = 0
         # Ordena os adjacentes por cor para melhorar a eficiente da busca de cores
@@ -129,7 +130,7 @@ class Grafo:
         # restricoes dos professores
         self.verificar_restricoes_professores()
         # Metodo que verifica se existe tres ou mais aulas geminadas
-        # self.verificar_geminadas()
+        self.verificar_geminadas()
         # Metodo que verifica se existe grande janelas de horarios para uma turma
         # self.verificar_janelas()
         # Metodo que verifica as preferencias dos professores
@@ -372,17 +373,31 @@ class Grafo:
                 for restricao in self.restricoes_professores.get(vertice.professor):
                     # Compara a restricao com o horario relativo a cor atual
                     if restricao[0] == self.horarios[vertice.cor][0] and restricao[1] == self.horarios[vertice.cor][1]:
-                        vertice.proxima_cor_disponivel(self.horarios)
+                        vertice.melhor_cor_disponivel(self.horarios)
 
     # Metodo que verifica se existe tres ou mais aulas geminadas
-    # def verificar_geminadas(self):
-    #     aulas_por_dia = len(self.horarios) / 5
-    #
-    #     for vertice1 in self.vertices:
-    #         for vertice2 in self.vertices:
-    #             for vertice3 in self.vertices:
-    #                 if vertice1 != vertice2 and vertice2 != vertice3:
-    #                     if
+    def verificar_geminadas(self):
+        # Calcula a quantidade de aulas por dia
+        aulas_por_dia = len(self.horarios) / 5
+        # Orneda na lista de vertices por cor (horarios) para melhorar a
+        # eficiencia da busca da cor
+        self.vertices.sort(key=lambda vertice: vertice.cor)
+        # Loop triplo que verifica se existe tres aulas com a mesma materia
+        # seguidas
+        for vertice1 in self.vertices:
+            for vertice2 in self.vertices:
+                for vertice3 in self.vertices:
+                    if vertice1 != vertice2 and vertice2 != vertice3:
+                        # Verifica se as aulas sao da mesma materia
+                        if (vertice1.materia == vertice2.materia and vertice2.materia == vertice3.materia):
+                            # Verifica se as aulas sao para a mesma turma
+                            if (vertice1.turma == vertice2.turma and vertice2.turma == vertice3.turma):
+                                # Verifica se as aulas sao seguidas
+                                if ((vertice3.cor + 1) == vertice2.cor and (vertice2.cor + 1) == vertice1.cor):
+                                    # Verifica se aulas estao no mesmo dia
+                                    if (math.ceil(vertice1.cor / aulas_por_dia) == math.ceil(vertice2.cor / aulas_por_dia) and math.ceil(vertice2.cor / aulas_por_dia) == math.ceil(vertice3.cor / aulas_por_dia)):
+                                        # Troca a aula para a melhor cor disponivel
+                                        vertice3.melhor_cor_disponivel(self.horarios)
 
     # Metodo que verifica se existe grande janelas de horarios para uma turma
     # def verificar_janelas(self):
