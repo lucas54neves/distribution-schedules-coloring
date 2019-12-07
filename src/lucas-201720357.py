@@ -109,7 +109,7 @@ class Vertice:
         # Retorna verdadeiro
         return True
 
-    # Metodo que tenta resolver as janelas if math.ceil(vertice1.cor / aulas_por_dia) == math.ceil(vertice2.cor / aulas_por_dia):
+    # Metodo que tenta resolver as janelas
     def cor_disponivel_janela(self, vertice_aula_anterior, aulas_por_dia, horarios):
         # A melhor cor comeca com a cor seguinte do vertice da aula anterior
         melhor = vertice_aula_anterior.cor + 1
@@ -546,7 +546,7 @@ class Grafo:
 #   Na posicao 2 da lista 2, esta o tempo (em segundos) do tempo que o algoritmo levou para ser executado
 #   Na posicao 3 da lista 2, esta a quantidade de vertices nao lidos
 #   Na posicao 4 da lista 2, esta uma lista 3 com as preferencias atendidas para para cada professor
-# Em cada posicao da lista 3, tem uma tupla com o identificador do professor e a quantidade de preferencias atendidas
+#     Em cada posicao da lista 3, tem uma tupla com o identificador do professor e a quantidade de preferencias atendidas
 
 def escrever_arquivo(dados, nome_arquivo):
     # Abre o arquivo para escrita
