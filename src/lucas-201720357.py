@@ -47,9 +47,11 @@ class Vertice:
     # coloridos
     def get_saturacao(self):
         saturacao = 0
+        cores = []
         for adjacente in self.adjacentes:
-            if adjacente.cor is not -1:
+            if adjacente.cor not in cores:
                 saturacao += 1
+                cores.append(cores)
         return saturacao
 
     # Retorna a menor cor disponivel
@@ -541,9 +543,9 @@ class Grafo:
 # Em cada posicao da lista dados tem um lista (lista 2) com os dados de uma escola
 #   Na posicao 0 da lista 2, esta o nome da escola
 #   Na posicao 1 da lista 2, esta a quantidade de horarios (ou cores) utilizada na coloracao
-#   Na posicao 2 da lista 2, esta o tempo (em segundos) do tempo que o algoritmo levou para ser executado       
+#   Na posicao 2 da lista 2, esta o tempo (em segundos) do tempo que o algoritmo levou para ser executado
 #   Na posicao 3 da lista 2, esta a quantidade de vertices nao lidos
-#   Na posicao 4 da lista 2, esta uma lista 3 com as preferencias atendidas para para cada professor     
+#   Na posicao 4 da lista 2, esta uma lista 3 com as preferencias atendidas para para cada professor
 # Em cada posicao da lista 3, tem uma tupla com o identificador do professor e a quantidade de preferencias atendidas
 
 def escrever_arquivo(dados, nome_arquivo):
