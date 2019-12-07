@@ -64,7 +64,7 @@ class Vertice:
                 menor += 1
                 # Verifica se a cor esta dentro dos horarios disponiveis
                 if (menor >= len(horarios)):
-                    menor = 0
+                    menor = self.cor_menos_frequente()
         # Retorna a menor cor disponivel
         return menor
 
@@ -88,9 +88,9 @@ class Vertice:
                     proxima += 1
             # Verifica se a cor esta dentro dos horarios disponiveis
             if (proxima >= len(horarios)):
-                # Se a cor ultrapassar o limite de cores, a primeira cor eh
-                # escolhida como a proxima cor disponivel
-                proxima = 0
+                # Se a cor ultrapassar o limite de cores, a cor menos frequente
+                # entre os adjacentes eh escolhida como a proxima cor disponivel
+                proxima = self.cor_menos_frequente()
         # Retorna a cor melhor disponivel
         return proxima
 
@@ -122,11 +122,30 @@ class Vertice:
                 melhor += 1
             # Verifica se a cor esta dentro dos horarios disponiveis
             if (melhor >= len(horarios)):
-                # Se a cor ultrapassar o limite de cores, a primeira cor eh
-                # escolhida como a possivel melhor cor
-                proxima = 0
+                # Se a cor ultrapassar o limite de cores, a cor menos
+                # frequente entre os adjacentes eh escolhida como a
+                # possivel melhor cor
+                melhor = self.cor_menos_frequente()
         # Retorna a melhor cor disponivel para janela
         return melhor
+
+    # Metodo que escolhe a cor menos frequente entre os vertices adjacentes
+    # Isso ocorre para limitar a quantidade de cores pelo quantidade de horarios
+    def cor_menos_frequente(self):
+        # Dicionario para armazenar a frequencia de cores
+        frequencia_cores = {}
+        # Loop que calcula a frequencia de cores
+        for adjacente in self.adjacentes:
+            # Verifica se a cor ja se encontra no dicionario. Se ela tiver, eh
+            # apenas incrementada
+            if adjacente.cor in frequencia_cores:
+                frequencia_cores[adjacente.cor] = frequencia_cores.get(adjacente.cor) + 1
+            # Caso a cor nao se encontra no dicionario, eh atribuido a ela o
+            # valor 1
+            else:
+                frequencia_cores[adjacente.cor] = 1
+        # Retorna a cor o valor menos frequente em relacao aos adjacentes
+        return min(frequencia_cores, key = frequencia_cores.get)
 
 # Classe que representa os grafos
 class Grafo:
