@@ -43,7 +43,7 @@ class Vertice:
     # Retorna o grau de saturacao do vertice
     # A saturacao eh o numero de diferentes cores para qual o vertice eh adjacente
     # Para calcular a saturacao, o metodo percorre todos os vertices adjacentes
-    # e incrmenta o valor da saturacao para os vertices adjacentes que ja foram
+    # e incrementa o valor da saturacao para os vertices adjacentes que ja foram
     # coloridos
     def get_saturacao(self):
         saturacao = 0
