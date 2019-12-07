@@ -547,7 +547,6 @@ class Grafo:
 #   Na posicao 3 da lista 2, esta a quantidade de vertices nao lidos
 #   Na posicao 4 da lista 2, esta uma lista 3 com as preferencias atendidas para para cada professor
 #     Em cada posicao da lista 3, tem uma tupla com o identificador do professor e a quantidade de preferencias atendidas
-
 def escrever_arquivo(dados, nome_arquivo):
     # Abre o arquivo para escrita
     # Se o arquivo existe, ele apaga os dados e escreve por cima
