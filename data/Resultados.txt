@@ -5,10 +5,10 @@ Escola B: 25
 Escola C: 25
 Escola D: 25
 Tempo para iteracao do algoritmo (em segundos):
-Escola A: 12.15
-Escola B: 11.55
-Escola C: 0.25
-Escola D: 22.17
+Escola A: 14.61
+Escola B: 15.49
+Escola C: 0.28
+Escola D: 29.86
 Quantidade de vertices nao coloridos:
 Escola A: 0
 Escola B: 0
@@ -36,7 +36,6 @@ Professor 1: 1
 Professor 17: 1
 Professor 8: 1
 Professor 10: 1
-Professor 2: 1
 Professor 4: 1
 Professor 13: 1
 Professor 3: 2
