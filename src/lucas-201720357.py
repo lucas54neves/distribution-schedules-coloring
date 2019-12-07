@@ -447,15 +447,15 @@ class Grafo:
     def verificar_geminadas(self):
         # Calcula a quantidade de aulas por dia
         aulas_por_dia = len(self.horarios) / 5
-        # Orneda na lista de vertices por cor (horarios) para melhorar a
-        # eficiencia da busca da cor
+        # Ordena de forma crescente a lista de vertices por cor (horarios) para
+        # melhorar a eficiencia da busca da cor
         self.vertices.sort(key=lambda vertice: vertice.cor)
         # Loop triplo que verifica se existe tres aulas com a mesma materia
         # seguidas
         for vertice1 in self.vertices:
             for vertice2 in self.vertices:
                 for vertice3 in self.vertices:
-                    if vertice1 != vertice2 and vertice2 != vertice3:
+                    if vertice1 != vertice2 and vertice2 != vertice3 and vertice1 != vertice3:
                         # Verifica se as aulas sao da mesma materia
                         if (vertice1.materia == vertice2.materia and vertice2.materia == vertice3.materia):
                             # Verifica se as aulas sao para a mesma turma
@@ -471,8 +471,8 @@ class Grafo:
     def verificar_janelas(self):
         # Calcula a quantidade de aulas por dia
         aulas_por_dia = len(self.horarios) / 5
-        # Orneda na lista de vertices por cor (horarios) para melhorar a
-        # eficiencia da busca da cor
+        # Ordena de forma crescente a lista de vertices por cor (horarios) para
+        # melhorar a eficiencia da busca da cor
         self.vertices.sort(key=lambda vertice: vertice.cor)
         # Loop duplo que verifica se existe janelas entre duas aulas para mesma
         # materia
