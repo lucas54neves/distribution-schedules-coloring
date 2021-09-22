@@ -1,4 +1,4 @@
-# graph-project
+# distribution-schedules-coloring
 Repository for the final project of the Algorithms in Graphs discipline of the Computer Science course at the Federal University of Lavras.
 
 Development of an efficient algorithm that finds the distribution of schedules for each class, minimizing the number of desired restrictions unattended. 
